@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+
+<style id="webmakerstyle">
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #ffdcbd;
+}
+a {
+  color: #555;
+}
+a:hover,
+a:focus,
+a:active {
+  color: blue;
+}
+a.hasnew {
+  color: #500;
+}
+h1,
+h2 {
+  color: #5a272e;
+}
+h2 {
+  font-weight: normal;
+  color: #a54;
+}
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+article {
+  display: flex;
+}
+ul.sidebar {
+  display: block;
+  list-style-type: none;
+  padding: 0;
+  width: 300px;
+}
+ul.sidebar li {
+  display: block;
+  padding: 10px 0;
+  font-size: 16px;
+  border-bottom: 1px white dotted;
+}
+ul.sidebar li a {
+  text-decoration: none;
+}
+main {
+  margin-left: 20px;
+}
+.graph {
+  margin: 40px auto;
+}
+.graph h2 {
+  margin: 25px;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  border-bottom: 1px white dashed;
+  font-weight: bold;
+}
+h1 {
+  text-align: center;
+  font-size: 32px;
+}
+.loading-container {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.loading-container .loader {
+  display: block;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 5px #a54 solid;
+  border-left: 5px #0000 solid;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.heading {
+  display: flex;
+  align-items: center;
+}
+.heading span {
+  display: inline-block;
+  margin-right: 40px;
+}
+.heading span.recovered {
+  color: green;
+}
+.heading span.died {
+  color: red;
+}
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+
+<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/prop-types/prop-types.min.js"></script>
+<script src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
+<script src="chrome-extension://lkfkkhfhhdkiemehlpkgjeojomhpccnh/lib/transpilers/babel-polyfill.min.js"></script><script>
+'use strict';
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+// GLOBAL CONSTANTS
+
+var _Recharts = Recharts,
+    LineChart = _Recharts.LineChart,
+    Line = _Recharts.Line,
+    AreaChart = _Recharts.AreaChart,
+    Area = _Recharts.Area,
+    CartesianGrid = _Recharts.CartesianGrid,
+    XAxis = _Recharts.XAxis,
+    YAxis = _Recharts.YAxis,
+    Tooltip = _Recharts.Tooltip,
+    Legend = _Recharts.Legend;
+
+
+var apiurl = "https://api.rootnet.in/covid19-in/unofficial/covid19india.org";
+
+// DATA PROCESSING/QUERY UTILS
+
+var pass = function pass(_) {
+  return true;
+};
+var fail = function fail(_) {
+  return false;
+};
+
+function groupBy(source, key) {
+  var cond = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : pass;
+
+  return source.reduce(function (acc, p) {
+    if (p[key] && cond(p[key])) {
+      if (!acc[p[key]]) acc[p[key]] = [];
+      acc[p[key]].push(p);
+    }
+    return acc;
+  }, {});
+}
+
+function select(source, keys) {
+  return source.map(function (x) {
+    return Object.keys(x).reduce(function (acc, key) {
+      if (keys.includes(key)) acc[key] = x[key];
+      return acc;
+    }, {});
+  });
+}
+
+function mapValues(source, mapper) {
+  return Object.keys(source).reduce(function (acc, key) {
+    acc[key] = mapper(source[key]);
+    return acc;
+  }, {});
+}
+
+function twodig(x) {
+  if (x.toString().length === 1) return '0' + x.toString();
+  return x.toString();
+}
+
+function getDates() {
+  var now = new Date();
+  var cur = new Date('Jan 30 2020');
+  var arr = [];
+  while (cur < now) {
+    arr.push(twodig(cur.getDate()) + '/' + twodig(cur.getMonth() + 1) + '/' + cur.getFullYear());
+    cur.setDate(cur.getDate() + 1);
+  }
+  return arr;
+}
+
+// DATA PROCESSING
+
+function getData(res) {
+  var data = res.data.rawPatientData;
+
+  var statewise = groupBy(data, 'state');
+  var statewiseDaily = mapValues(statewise, function (arr) {
+    return groupBy(arr, 'reportedOn');
+  });
+  var sdata = mapValues(statewiseDaily, function (state) {
+    return mapValues(state, function (x) {
+      return {
+        total: x.length,
+        recovered: x.filter(function (p) {
+          return p.status === 'Recovered';
+        }).length,
+        died: x.filter(function (p) {
+          return p.status === 'Deceased';
+        }).length
+      };
+    });
+  });
+
+  var daily = groupBy(data, 'reportedOn');
+  var cdata = mapValues(daily, function (x) {
+    return {
+      total: x.length,
+      recovered: x.filter(function (p) {
+        return p.status === 'Recovered';
+      }).length,
+      died: x.filter(function (p) {
+        return p.status === 'Deceased';
+      }).length
+    };
+  });
+
+  console.log({ sdata: sdata, cdata: cdata });
+  return { sdata: sdata, cdata: cdata };
+}
+
+function processData(_ref) {
+  var sdata = _ref.sdata,
+      cdata = _ref.cdata;
+
+  var dates = getDates();
+  var states = Object.keys(sdata);
+
+  var data = dates.reduce(function (acc, date, ind) {
+    var prev = _extends({
+      country: {
+        new: 0,
+        total: 0,
+        diff: 0,
+        factor: 1,
+        recovered: 0,
+        died: 0
+      }
+    }, states.reduce(function (acc, state) {
+      acc[state] = {
+        new: 0,
+        total: 0,
+        diff: 0,
+        factor: 1,
+        recovered: 0,
+        died: 0
+      };
+      return acc;
+    }, {}));
+    if (ind > 0) prev = acc[dates[ind - 1]];
+    var obj = {};
+    obj.country = {};
+    obj.country.new = cdata[date] ? cdata[date].total : 0;
+    obj.country.total = prev.country.total + obj.country.new;
+    obj.country.diff = obj.country.new - prev.country.new;
+    obj.country.factor = prev.country.total ? obj.country.total / prev.country.total : 1;
+    obj.country.factor = Math.round((obj.country.factor + Number.EPSILON) * 1000) / 1000;
+
+    obj.country.recovered = (cdata[date] ? cdata[date].recovered : 0) + prev.country.recovered;
+    obj.country.died = (cdata[date] ? cdata[date].died : 0) + prev.country.died;
+
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = states[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var state = _step.value;
+
+        obj[state] = {};
+        obj[state].new = sdata[state][date] ? sdata[state][date].total : 0;
+        obj[state].total = prev[state].total + obj[state].new;
+        obj[state].diff = obj[state].new - prev[state].new;
+        obj[state].factor = prev[state].total ? obj[state].total / prev[state].total : 1;
+        obj[state].factor = Math.round((obj[state].factor + Number.EPSILON) * 1000) / 1000;
+
+        obj[state].recovered = (sdata[state][date] ? sdata[state][date].recovered : 0) + prev[state].recovered;
+        obj[state].died = (sdata[state][date] ? sdata[state][date].died : 0) + prev[state].died;
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+
+    acc[date] = obj;
+    return acc;
+  }, {});
+
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
+
+  try {
+    for (var _iterator2 = dates[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var date = _step2.value;
+
+      if (data[date].country.total === 0) delete data[date];
+    }
+  } catch (err) {
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
+      }
+    } finally {
+      if (_didIteratorError2) {
+        throw _iteratorError2;
+      }
+    }
+  }
+
+  return { data: data, states: states };
+}
+
+// COMPONENTS
+
+var t = new Date();
+var today = twodig(t.getDate()) + '/' + twodig(t.getMonth() + 1) + '/' + t.getFullYear();
+
+function Chart(_ref2) {
+  var data = _ref2.data,
+      state = _ref2.state,
+      k = _ref2.k;
+
+  var d = Object.keys(data).map(function (date) {
+    return {
+      x: date,
+      value: data[date][state][k]
+    };
+  });
+
+  var heading = {
+    total: 'Total number of infections',
+    new: 'New infections',
+    diff: 'Growth in number of new infections',
+    factor: 'Rate of growth of total number of infections'
+  };
+
+  return React.createElement(
+    'div',
+    { className: 'graph' },
+    React.createElement(
+      'h2',
+      null,
+      heading[k],
+      ' (',
+      data[today][state][k],
+      ')'
+    ),
+    React.createElement(
+      LineChart,
+      { width: 800, height: 400, data: d },
+      React.createElement(Line, { type: 'monotone', dataKey: 'value', stroke: '#8884d8', strokeWidth: 2 }),
+      React.createElement(CartesianGrid, { stroke: '#ccc', strokeDasharray: '5 5' }),
+      React.createElement(XAxis, { dataKey: 'x' }),
+      React.createElement(YAxis, null),
+      React.createElement(Tooltip, null)
+    )
+  );
+}
+
+function MainChart(_ref3) {
+  var data = _ref3.data,
+      state = _ref3.state;
+
+  var d = Object.keys(data).map(function (date) {
+    return {
+      x: date,
+      total: data[date][state].total,
+      recovered: data[date][state].recovered,
+      died: data[date][state].died
+    };
+  });
+
+  var heading = React.createElement(
+    'h2',
+    { className: 'heading' },
+    React.createElement(
+      'span',
+      { className: 'total' },
+      'Infected (',
+      data[today][state].total,
+      ')'
+    ),
+    React.createElement(
+      'span',
+      { className: 'recovered' },
+      'Recovered (',
+      data[today][state].recovered,
+      ')'
+    ),
+    React.createElement(
+      'span',
+      { className: 'died' },
+      'Died (',
+      data[today][state].died,
+      ')'
+    )
+  );
+
+  return React.createElement(
+    'div',
+    { className: 'graph' },
+    heading,
+    React.createElement(
+      AreaChart,
+      { width: 800, height: 400, data: d },
+      React.createElement(Area, { type: 'monotone', dataKey: 'total', stroke: '#8884d8', strokeWidth: 2 }),
+      React.createElement(Area, { type: 'monotone', dataKey: 'recovered', stroke: '#8884d8', strokeWidth: 2 }),
+      React.createElement(Area, { type: 'monotone', dataKey: 'died', stroke: '#8884d8', strokeWidth: 2 }),
+      React.createElement(CartesianGrid, { stroke: '#ccc', strokeDasharray: '5 5' }),
+      React.createElement(XAxis, { dataKey: 'x' }),
+      React.createElement(YAxis, null),
+      React.createElement(Tooltip, null),
+      React.createElement(Legend, null)
+    )
+  );
+}
+
+function Loading() {
+  return React.createElement(
+    'div',
+    { className: 'loading-container' },
+    React.createElement('div', { className: 'loader' })
+  );
+}
+
+function App() {
+  var _React$useState = React.useState('country'),
+      _React$useState2 = _slicedToArray(_React$useState, 2),
+      st = _React$useState2[0],
+      sst = _React$useState2[1];
+
+  var _React$useState3 = React.useState(null),
+      _React$useState4 = _slicedToArray(_React$useState3, 2),
+      data = _React$useState4[0],
+      setData = _React$useState4[1];
+
+  var _React$useState5 = React.useState([]),
+      _React$useState6 = _slicedToArray(_React$useState5, 2),
+      states = _React$useState6[0],
+      setStates = _React$useState6[1];
+
+  React.useEffect(function () {
+    fetch(apiurl).then(function (res) {
+      return res.json();
+    }).then(function (res) {
+      var _processData = processData(getData(res)),
+          data = _processData.data,
+          states = _processData.states;
+
+      setStates(states);
+      setData(data);
+    });
+  }, []);
+
+  var s = ['country'].concat(_toConsumableArray(states));
+  if (!data) {
+    return React.createElement(Loading, null);
+  }
+  return React.createElement(
+    'div',
+    { className: 'container' },
+    React.createElement(
+      'header',
+      null,
+      React.createElement(
+        'h2',
+        null,
+        'COVID-19 STATS'
+      ),
+      React.createElement(
+        'h2',
+        null,
+        today
+      )
+    ),
+    React.createElement(
+      'article',
+      null,
+      React.createElement(
+        'ul',
+        { className: 'sidebar' },
+        s.map(function (state) {
+          return React.createElement(
+            'li',
+            { key: state },
+            React.createElement(
+              'a',
+              { href: '#!', onClick: function onClick() {
+                  return sst(state);
+                }, className: data[today][state].new ? 'hasnew' : '' },
+              state === 'country' ? 'India' : state
+            )
+          );
+        })
+      ),
+      React.createElement(
+        'main',
+        null,
+        React.createElement(
+          'h1',
+          null,
+          st === 'country' ? 'INDIA' : st.toUpperCase()
+        ),
+        React.createElement(Chart, { data: data, state: st, k: 'total' }),
+        React.createElement(Chart, { data: data, state: st, k: 'new' }),
+        React.createElement(Chart, { data: data, state: st, k: 'diff' }),
+        React.createElement(Chart, { data: data, state: st, k: 'factor' })
+      )
+    )
+  );
+}
+
+ReactDOM.render(React.createElement(App, null), window.root);
+//# sourceURL=userscript.js
+</script>
+</body>
+</html>
