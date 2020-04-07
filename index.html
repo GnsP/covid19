@@ -101,33 +101,18 @@ h1 {
     transform: rotate(360deg);
   }
 }
-.heading {
-  display: flex;
-  align-items: center;
-}
-.heading span {
-  display: inline-block;
-  margin-right: 40px;
-}
-.heading span.recovered {
-  color: green;
-}
-.heading span.died {
-  color: red;
-}
 
 </style>
 </head>
 <body>
-<div id="root"></div>
-
+<html><head><title>COVID-19 Analysis (India)</title><meta charset="utf8"/><meta name="description" content="Mathematical analysis and prediction for spread of Novel Corona Virus (COVID-19) in India"/><meta name="keywords" content="novel, corona, virus, covid19, covid, analysis, mathematical, model, prediction, india, pandemic"/><meta http-equiv="cache-control" content="no-cache"/><meta property="og:title" content="COVID-19 Spread Analysis (India)"/><meta property="og:description" content="Mathematical analysis and prediction for spread of Novel Corona Virus (COVID-19) in India"/><meta property="og:image" content="https://gnsp.in/covid19/thumbnail.png"/><meta property="og:url" content="https://gnsp.in/covid19"/><meta name="twitter:card" content="summary_large_image"/></head><body><div id="root"></div></body></html>
 
 <script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/prop-types/prop-types.min.js"></script>
 <script src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
 <script src="chrome-extension://lkfkkhfhhdkiemehlpkgjeojomhpccnh/lib/transpilers/babel-polyfill.min.js"></script><script>
-'use strict';
+"use strict";
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -138,9 +123,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 // GLOBAL CONSTANTS
 
 var _Recharts = Recharts,
-    LineChart = _Recharts.LineChart,
+    ComposedChart = _Recharts.ComposedChart,
     Line = _Recharts.Line,
-    AreaChart = _Recharts.AreaChart,
     Area = _Recharts.Area,
     CartesianGrid = _Recharts.CartesianGrid,
     XAxis = _Recharts.XAxis,
@@ -150,6 +134,53 @@ var _Recharts = Recharts,
 
 
 var apiurl = "https://api.rootnet.in/covid19-in/unofficial/covid19india.org";
+
+var td = new Date();
+var today = twodig(td.getDate()) + "/" + twodig(td.getMonth() + 1) + "/" + td.getFullYear();
+var yd = new Date();
+yd.setDate(td.getDate() - 1);
+var yday = twodig(yd.getDate()) + "/" + twodig(yd.getMonth() + 1) + "/" + yd.getFullYear();
+
+var population = {
+  "Uttar Pradesh": 199812341,
+  "Maharashtra": 112374333,
+  "Bihar": 104099452,
+  "West Bengal": 91276115,
+  "Madhya Pradesh": 72626809,
+  "Tamil Nadu": 72147030,
+  "Rajasthan": 68548437,
+  "Karnataka": 61095297,
+  "Gujarat": 60439692,
+  "Andhra Pradesh": 49577103,
+  "Odisha": 41974218,
+  "Telangana": 35003674,
+  "Kerala": 33406061,
+  "Jharkhand": 32988134,
+  "Assam": 31205576,
+  "Punjab": 27743338,
+  "Chhattisgarh": 25545198,
+  "Haryana": 25351462,
+  "Uttarakhand": 10086292,
+  "Himachal Pradesh": 6864602,
+  "Tripura": 3673917,
+  "Meghalaya": 2966889,
+  "Manipur": 2570390,
+  "Nagaland": 1978502,
+  "Goa": 1458545,
+  "Arunachal Pradesh": 1383727,
+  "Mizoram": 1097206,
+  "Sikkim": 610577,
+  "Delhi": 16787941,
+  "Jammu and Kashmir": 12267032,
+  "Puducherry": 1247953,
+  "Chandigarh": 1055450,
+  "Dadra and Nagar Haveli and Daman and Diu": 585764,
+  "Andaman and Nicobar Islands": 380581,
+  "Ladakh": 274000,
+  "Lakshadweep": 64473,
+  "India": 1210569573,
+  "country": 1210569573
+};
 
 // DATA PROCESSING/QUERY UTILS
 
@@ -198,10 +229,14 @@ function getDates() {
   var cur = new Date('Jan 30 2020');
   var arr = [];
   while (cur < now) {
-    arr.push(twodig(cur.getDate()) + '/' + twodig(cur.getMonth() + 1) + '/' + cur.getFullYear());
+    arr.push(twodig(cur.getDate()) + "/" + twodig(cur.getMonth() + 1) + "/" + cur.getFullYear());
     cur.setDate(cur.getDate() + 1);
   }
   return arr;
+}
+
+function capitalize(x) {
+  return x[0].toUpperCase() + x.slice(1);
 }
 
 // DATA PROCESSING
@@ -240,7 +275,7 @@ function getData(res) {
     };
   });
 
-  console.log({ sdata: sdata, cdata: cdata });
+  //console.log({ sdata, cdata });
   return { sdata: sdata, cdata: cdata };
 }
 
@@ -346,24 +381,131 @@ function processData(_ref) {
     }
   }
 
+  var fns = [].concat(_toConsumableArray(states), ['country']).reduce(function (acc, state) {
+    acc[state] = curveFit(data, state);
+    return acc;
+  }, {});
+
+  dates.forEach(function (date, ind) {
+    var prevDate = ind > 0 ? dates[ind - 1] : undefined;
+    Object.keys(data[date]).forEach(function (state) {
+      data[date][state].predictedTotal = fns[state](date);
+      if (Number.isNaN(data[date][state].predictedTotal)) return;
+      data[date][state].predictedNew = data[date][state].predictedTotal - (prevDate ? data[prevDate][state].predictedTotal : 0);
+      data[date][state].predictedDiff = data[date][state].predictedNew - (prevDate ? data[prevDate][state].predictedNew : 0);
+      data[date][state].predictedFactor = prevDate ? data[date][state].predictedTotal / data[prevDate][state].predictedTotal : 1;
+      data[date][state].predictedFactor = Math.round((data[date][state].predictedFactor + Number.EPSILON) * 1000) / 1000;
+    });
+  });
+
   return { data: data, states: states };
+}
+
+function curveFit(data, state) {
+  var eps = 1;
+
+  var K = Math.floor(population[state] / 10);
+  var k = 1;
+  var dates = Object.keys(data);
+
+  var d0 = dates.indexOf('14/03/2020');
+  var currentTotal = data[today][state].total;
+  var p0limit = currentTotal > 100 ? 30 : currentTotal > 10 ? 5 : 2;
+
+  for (var _i = 0; _i < dates.length; _i++) {
+    if (data[dates[_i]][state].total > p0limit) {
+      d0 = _i;
+      break;
+    }
+  }
+
+  var dset = dates.slice(d0, -1).map(function (dt, ind) {
+    return {
+      x: ind,
+      y: data[dt][state].total
+    };
+  });
+
+  var P0 = dset[0].y;
+
+  var A = function A(x) {
+    return (x - P0) / P0;
+  };
+  var f = function f(K, k, t) {
+    return K / (1 + A(K) * Math.exp(-k * t));
+  };
+
+  var err = function err(K, k) {
+    return dset.reduce(function (acc, _ref2) {
+      var x = _ref2.x,
+          y = _ref2.y;
+      return acc + Math.pow(y - f(K, k, x), 2);
+    }, 0);
+  };
+
+  var dedK = function dedK(K, k) {
+    return -2 * dset.reduce(function (acc, _ref3) {
+      var x = _ref3.x,
+          y = _ref3.y;
+      return acc + (y - f(K, k, x)) * (P0 + K) * (1 - Math.exp(-k * x)) * P0 / (Math.pow(P0, 2) + Math.exp(-2 * k * x) * Math.pow(K - P0, 2) - 2 * P0 * Math.exp(-k * x) * (K - P0));
+    }, 0);
+  };
+
+  var dedk = function dedk(K, k) {
+    return -2 * dset.reduce(function (acc, _ref4) {
+      var x = _ref4.x,
+          y = _ref4.y;
+      return acc + (y - f(K, k, x)) * K * A(K) * x * Math.exp(-k * x) / Math.pow(1 + A(K) * Math.exp(-k * x), 2);
+    }, 0);
+  };
+
+  var ee = err(K, k);
+  var i = 0;
+
+  var minee = Infinity;
+  var minK = void 0,
+      mink = void 0;
+  if (ee < minee) {
+    minee = ee;
+    minK = K;
+    mink = k;
+  }
+
+  while (ee > eps && i < 500) {
+    var _K = K,
+        _k = k;
+    K = _K - ee / dedK(_K, _k);
+    k = _k - ee / dedk(_K, _k);
+    ee = err(K, k);
+    i++;
+    if (ee < minee) {
+      minee = ee;
+      minK = K;
+      mink = k;
+    }
+  }
+  //console.log({ state, ee, minee, i, eps, mink, minK});
+
+  return function (date) {
+    var x = dates.indexOf(date) - d0;
+    return Math.floor(f(minK, mink, x));
+  };
 }
 
 // COMPONENTS
 
-var t = new Date();
-var today = twodig(t.getDate()) + '/' + twodig(t.getMonth() + 1) + '/' + t.getFullYear();
+function Chart(_ref5) {
+  var data = _ref5.data,
+      state = _ref5.state,
+      k = _ref5.k,
+      semilog = _ref5.semilog;
 
-function Chart(_ref2) {
-  var data = _ref2.data,
-      state = _ref2.state,
-      k = _ref2.k,
-      semilog = _ref2.semilog;
-
-  var d = Object.keys(data).map(function (date) {
+  var predKey = "predicted" + capitalize(k);
+  var d = Object.keys(data).map(function (date, ind) {
     return {
       x: date,
-      value: data[date][state][k]
+      value: data[date][state][k],
+      prediction: data[date][state][predKey]
     };
   });
 
@@ -375,80 +517,24 @@ function Chart(_ref2) {
   };
 
   return React.createElement(
-    'div',
-    { className: 'graph' },
+    "div",
+    { className: "graph" },
     React.createElement(
-      'h2',
+      "h2",
       null,
       heading[k],
-      ' (',
+      " (",
       data[today][state][k],
-      ')'
+      ")"
     ),
     React.createElement(
-      LineChart,
-      { width: 800, height: 400, data: d },
-      React.createElement(Line, { type: 'monotone', dataKey: 'value', stroke: '#8884d8', strokeWidth: 2 }),
-      React.createElement(CartesianGrid, { stroke: '#ccc', strokeDasharray: '5 5' }),
-      React.createElement(XAxis, { dataKey: 'x' }),
+      ComposedChart,
+      { width: 800, height: 400, data: d, syncId: "aa" },
+      k !== 'factor' && React.createElement(Area, { type: "monotone", dataKey: "prediction", stroke: "#f82", fill: "#f828", strokeWidth: 1 }),
+      React.createElement(Line, { type: "monotone", dataKey: "value", stroke: "#8884d8", strokeWidth: 2 }),
+      React.createElement(CartesianGrid, { stroke: "#ccc", strokeDasharray: "5 5" }),
+      React.createElement(XAxis, { dataKey: "x" }),
       React.createElement(YAxis, { scale: semilog && 'log', domain: semilog && ['auto', 'auto'] }),
-      React.createElement(Tooltip, null)
-    )
-  );
-}
-
-function MainChart(_ref3) {
-  var data = _ref3.data,
-      state = _ref3.state;
-
-  var d = Object.keys(data).map(function (date) {
-    return {
-      x: date,
-      total: data[date][state].total,
-      recovered: data[date][state].recovered,
-      died: data[date][state].died
-    };
-  });
-
-  var heading = React.createElement(
-    'h2',
-    { className: 'heading' },
-    React.createElement(
-      'span',
-      { className: 'total' },
-      'Infected (',
-      data[today][state].total,
-      ')'
-    ),
-    React.createElement(
-      'span',
-      { className: 'recovered' },
-      'Recovered (',
-      data[today][state].recovered,
-      ')'
-    ),
-    React.createElement(
-      'span',
-      { className: 'died' },
-      'Died (',
-      data[today][state].died,
-      ')'
-    )
-  );
-
-  return React.createElement(
-    'div',
-    { className: 'graph' },
-    heading,
-    React.createElement(
-      AreaChart,
-      { width: 800, height: 400, data: d },
-      React.createElement(Area, { type: 'monotone', dataKey: 'total', stroke: '#8884d8', strokeWidth: 2 }),
-      React.createElement(Area, { type: 'monotone', dataKey: 'recovered', stroke: '#8884d8', strokeWidth: 2 }),
-      React.createElement(Area, { type: 'monotone', dataKey: 'died', stroke: '#8884d8', strokeWidth: 2 }),
-      React.createElement(CartesianGrid, { stroke: '#ccc', strokeDasharray: '5 5' }),
-      React.createElement(XAxis, { dataKey: 'x' }),
-      React.createElement(YAxis, null),
       React.createElement(Tooltip, null),
       React.createElement(Legend, null)
     )
@@ -457,9 +543,9 @@ function MainChart(_ref3) {
 
 function Loading() {
   return React.createElement(
-    'div',
-    { className: 'loading-container' },
-    React.createElement('div', { className: 'loader' })
+    "div",
+    { className: "loading-container" },
+    React.createElement("div", { className: "loader" })
   );
 }
 
@@ -497,35 +583,35 @@ function App() {
     return React.createElement(Loading, null);
   }
   return React.createElement(
-    'div',
-    { className: 'container' },
+    "div",
+    { className: "container" },
     React.createElement(
-      'header',
+      "header",
       null,
       React.createElement(
-        'h2',
+        "h2",
         null,
-        'COVID-19 STATS'
+        "COVID-19 STATS"
       ),
       React.createElement(
-        'h2',
+        "h2",
         null,
         today
       )
     ),
     React.createElement(
-      'article',
+      "article",
       null,
       React.createElement(
-        'ul',
-        { className: 'sidebar' },
+        "ul",
+        { className: "sidebar" },
         s.map(function (state) {
           return React.createElement(
-            'li',
+            "li",
             { key: state },
             React.createElement(
-              'a',
-              { href: '#!', onClick: function onClick() {
+              "a",
+              { href: "#!", onClick: function onClick() {
                   return sst(state);
                 }, className: data[today][state].new ? 'hasnew' : '' },
               state === 'country' ? 'India' : state
@@ -534,10 +620,10 @@ function App() {
         })
       ),
       React.createElement(
-        'main',
+        "main",
         null,
         React.createElement(
-          'h1',
+          "h1",
           null,
           st === 'country' ? 'INDIA' : st.toUpperCase()
         ),
