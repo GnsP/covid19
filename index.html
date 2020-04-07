@@ -240,6 +240,20 @@ function getDates() {
   return arr;
 }
 
+function getOneYear() {
+  var cur = new Date('Jan 30 2020');
+  var arr = [];
+  var i = 0;
+  while (i < 366) {
+    arr.push(twodig(cur.getDate()) + "/" + twodig(cur.getMonth() + 1) + "/" + cur.getFullYear());
+    cur.setDate(cur.getDate() + 1);
+    i++;
+  }
+  return arr;
+}
+
+var oneYear = getOneYear();
+
 function capitalize(x) {
   return x[0].toUpperCase() + x.slice(1);
 }
@@ -403,23 +417,37 @@ function processData(_ref) {
     });
   });
 
-  return { data: data, states: states };
+  var prediction = oneYear.reduce(function (acc, date) {
+    acc[date] = [].concat(_toConsumableArray(states), ['country']).reduce(function (obj, state) {
+      obj[state] = {
+        value: fns[state](date)
+      };
+      return obj;
+    }, {});
+    return acc;
+  }, {});
+
+  oneYear.forEach(function (date) {
+    prediction[date].country.value = states.reduce(function (acc, state) {
+      //console.log(prediction[date][state]);
+      return acc + (prediction[date][state].value || 0);
+    }, 0);
+  });
+  //console.log(prediction);
+  return { data: data, states: states, prediction: prediction };
 }
 
 function curveFit(data, state) {
   var eps = 1;
 
-  var K = Math.floor(population[state] / 10);
-  var k = 1;
   var dates = Object.keys(data);
-
   var d0 = dates.indexOf('14/03/2020');
   var currentTotal = data[today][state].total;
   var p0limit = currentTotal > 100 ? 30 : currentTotal > 10 ? 5 : 2;
 
-  for (var _i = 0; _i < dates.length; _i++) {
-    if (data[dates[_i]][state].total > p0limit) {
-      d0 = _i;
+  for (var i = 0; i < dates.length; i++) {
+    if (data[dates[i]][state].total > p0limit) {
+      d0 = i;
       break;
     }
   }
@@ -464,36 +492,51 @@ function curveFit(data, state) {
     }, 0);
   };
 
-  var ee = err(K, k);
-  var i = 0;
+  var minminee = Infinity,
+      minminK = void 0,
+      minmink = void 0;
+  for (var pctg = 0.01; pctg <= 0.5; pctg += 0.02) {
+    var K = Math.floor(population[state] * pctg / 100);
+    var Kmax = K; // assuming 0.5% of population stand a chance to be affected and report
+    var k = 0.1;
 
-  var minee = Infinity;
-  var minK = void 0,
-      mink = void 0;
-  if (ee < minee) {
-    minee = ee;
-    minK = K;
-    mink = k;
-  }
+    var ee = err(K, k);
+    var _i = 0;
 
-  while (ee > eps && i < 500) {
-    var _K = K,
-        _k = k;
-    K = _K - ee / dedK(_K, _k);
-    k = _k - ee / dedk(_K, _k);
-    ee = err(K, k);
-    i++;
+    var minee = Infinity;
+    var minK = void 0,
+        mink = void 0;
     if (ee < minee) {
       minee = ee;
       minK = K;
       mink = k;
     }
+
+    while (ee > eps && _i < 500) {
+      var _K = K,
+          _k = k;
+      K = Math.min(Kmax, _K - ee / dedK(_K, _k));
+      if (K < 0) K = _K;
+      k = _k - ee / dedk(_K, _k);
+      ee = err(K, k);
+      _i++;
+      if (ee < minee) {
+        minee = ee;
+        minK = K;
+        mink = k;
+      }
+    }
+    //console.log({ state, ee, minee, i, eps, mink, minK, Kmax});
+    if (minee < minminee) {
+      minminee = minee;
+      minminK = minK;
+      minmink = mink;
+    }
   }
-  //console.log({ state, ee, minee, i, eps, mink, minK});
 
   return function (date) {
-    var x = dates.indexOf(date) - d0;
-    return Math.floor(f(minK, mink, x));
+    var x = oneYear.indexOf(date) - d0;
+    return Math.floor(f(minminK, minmink, x));
   };
 }
 
@@ -503,7 +546,8 @@ function Chart(_ref5) {
   var data = _ref5.data,
       state = _ref5.state,
       k = _ref5.k,
-      semilog = _ref5.semilog;
+      semilog = _ref5.semilog,
+      area = _ref5.area;
 
   var predKey = "predicted" + capitalize(k);
   var d = Object.keys(data).map(function (date, ind) {
@@ -518,7 +562,8 @@ function Chart(_ref5) {
     total: 'Total number of infections',
     new: 'New infections',
     diff: 'Growth in number of new infections',
-    factor: 'Rate of growth of total number of infections'
+    factor: 'Rate of growth of total number of infections',
+    value: 'Prediction for a year'
   };
 
   return React.createElement(
@@ -529,14 +574,14 @@ function Chart(_ref5) {
       null,
       heading[k],
       " (",
-      data[today][state][k],
+      d[d.length - 1].value,
       ")"
     ),
     React.createElement(
       ComposedChart,
       { width: 800, height: 400, data: d, syncId: "aa" },
       k !== 'factor' && React.createElement(Area, { type: "monotone", dataKey: "prediction", stroke: "#f82", fill: "#f828", strokeWidth: 1 }),
-      React.createElement(Line, { type: "monotone", dataKey: "value", stroke: "#8884d8", strokeWidth: 2 }),
+      area ? React.createElement(Area, { type: "monotone", dataKey: "value", stroke: "#f82", fill: "#f828", strokeWidth: 1 }) : React.createElement(Line, { type: "monotone", dataKey: "value", stroke: "#8884d8", strokeWidth: 2 }),
       React.createElement(CartesianGrid, { stroke: "#ccc", strokeDasharray: "5 5" }),
       React.createElement(XAxis, { dataKey: "x" }),
       React.createElement(YAxis, { scale: semilog && 'log', domain: semilog && ['auto', 'auto'] }),
@@ -570,15 +615,22 @@ function App() {
       states = _React$useState6[0],
       setStates = _React$useState6[1];
 
+  var _React$useState7 = React.useState({}),
+      _React$useState8 = _slicedToArray(_React$useState7, 2),
+      pred = _React$useState8[0],
+      setPred = _React$useState8[1];
+
   React.useEffect(function () {
     fetch(apiurl).then(function (res) {
       return res.json();
     }).then(function (res) {
       var _processData = processData(getData(res)),
           data = _processData.data,
-          states = _processData.states;
+          states = _processData.states,
+          prediction = _processData.prediction;
 
       setStates(states);
+      setPred(prediction);
       setData(data);
     });
   }, []);
@@ -633,6 +685,7 @@ function App() {
           st === 'country' ? 'INDIA' : st.toUpperCase()
         ),
         React.createElement(Chart, { data: data, state: st, k: 'total' }),
+        React.createElement(Chart, { data: pred, state: st, k: 'value', area: true }),
         React.createElement(Chart, { data: data, state: st, k: 'new' }),
         React.createElement(Chart, { data: data, state: st, k: 'diff' }),
         React.createElement(Chart, { data: data, state: st, k: 'factor', semilog: true })
