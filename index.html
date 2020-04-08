@@ -104,7 +104,6 @@ h1 {
 
 </style>
 
-
 <title>COVID-19 Analysis (India)</title><meta charset="utf8"/><meta name="description" content="Mathematical analysis and prediction for spread of Novel Corona Virus (COVID-19) in India"/><meta name="keywords" content="novel, corona, virus, covid19, covid, analysis, mathematical, model, prediction, india, pandemic"/><meta http-equiv="cache-control" content="no-cache"/><meta property="og:title" content="COVID-19 Spread Analysis (India)"/><meta property="og:description" content="Mathematical analysis and prediction for spread of Novel Corona Virus (COVID-19) in India"/><meta property="og:image" content="https://gnsp.in/covid19/thumbnail.png"/><meta property="og:url" content="https://gnsp.in/covid19"/><meta property="twitter:card" content="summary_large_image"/>
 
 </head>
@@ -228,6 +227,10 @@ function mapValues(source, mapper) {
 function twodig(x) {
   if (x.toString().length === 1) return '0' + x.toString();
   return x.toString();
+}
+
+function onlyPositive(x) {
+  return x < 0 ? 0 : x;
 }
 
 function getDates() {
@@ -411,7 +414,7 @@ function processData(_ref) {
     Object.keys(data[date]).forEach(function (state) {
       data[date][state].predictedTotal = fns[state](date);
       if (Number.isNaN(data[date][state].predictedTotal)) return;
-      data[date][state].predictedNew = data[date][state].predictedTotal - (prevDate ? data[prevDate][state].predictedTotal : 0);
+      data[date][state].predictedNew = onlyPositive(data[date][state].predictedTotal - (prevDate ? data[prevDate][state].predictedTotal : 0));
       data[date][state].predictedDiff = data[date][state].predictedNew - (prevDate ? data[prevDate][state].predictedNew : 0);
       data[date][state].predictedFactor = prevDate ? data[date][state].predictedTotal / data[prevDate][state].predictedTotal : 1;
       data[date][state].predictedFactor = Math.round((data[date][state].predictedFactor + Number.EPSILON) * 1000) / 1000;
@@ -439,7 +442,7 @@ function processData(_ref) {
 }
 
 function curveFit(data, state) {
-  var eps = 1;
+  var eps = 0.01;
 
   var dates = Object.keys(data);
   var d0 = dates.indexOf('14/03/2020');
@@ -473,15 +476,15 @@ function curveFit(data, state) {
     return dset.reduce(function (acc, _ref2) {
       var x = _ref2.x,
           y = _ref2.y;
-      return acc + Math.pow(y - f(K, k, x), 2);
-    }, 0);
+      return acc + Math.pow((y - f(K, k, x)) / y, 2);
+    }, 0) / dset.length;
   };
 
   var dedK = function dedK(K, k) {
     return -2 * dset.reduce(function (acc, _ref3) {
       var x = _ref3.x,
           y = _ref3.y;
-      return acc + (y - f(K, k, x)) * (P0 + K) * (1 - Math.exp(-k * x)) * P0 / (Math.pow(P0, 2) + Math.exp(-2 * k * x) * Math.pow(K - P0, 2) - 2 * P0 * Math.exp(-k * x) * (K - P0));
+      return acc + (y - f(K, k, x)) * (P0 + K) * (1 - Math.exp(-k * x)) * P0 * Math.pow(y, -2) / (Math.pow(P0, 2) + Math.exp(-2 * k * x) * Math.pow(K - P0, 2) - 2 * P0 * Math.exp(-k * x) * (K - P0));
     }, 0);
   };
 
@@ -489,20 +492,22 @@ function curveFit(data, state) {
     return -2 * dset.reduce(function (acc, _ref4) {
       var x = _ref4.x,
           y = _ref4.y;
-      return acc + (y - f(K, k, x)) * K * A(K) * x * Math.exp(-k * x) / Math.pow(1 + A(K) * Math.exp(-k * x), 2);
+      return acc + (y - f(K, k, x)) * K * A(K) * x * Math.exp(-k * x) * Math.pow(y, -2) / Math.pow(1 + A(K) * Math.exp(-k * x), 2);
     }, 0);
   };
 
   var minminee = Infinity,
       minminK = void 0,
-      minmink = void 0;
-  for (var pctg = 0.01; pctg <= 0.5; pctg += 0.02) {
+      minmink = void 0,
+      iii = void 0;
+  for (var pctg = 0.005; pctg <= 0.2; pctg += 0.005) {
     var K = Math.floor(population[state] * pctg / 100);
-    var Kmax = K; // assuming 0.5% of population stand a chance to be affected and report
-    var k = 0.1;
+    var Kmax = K; // assuming 0.2% of population stand a chance to be affected and report
+    var k = 0.15;
 
     var ee = err(K, k);
-    var _i = 0;
+    var _i = 0,
+        ii = void 0;
 
     var minee = Infinity;
     var minK = void 0,
@@ -513,7 +518,8 @@ function curveFit(data, state) {
       mink = k;
     }
 
-    while (ee > eps && _i < 500) {
+    var prevee = ee;
+    while (ee > eps && _i < 200) {
       var _K = K,
           _k = k;
       K = Math.min(Kmax, _K - ee / dedK(_K, _k));
@@ -525,15 +531,20 @@ function curveFit(data, state) {
         minee = ee;
         minK = K;
         mink = k;
+        ii = _i;
       }
+      //if (ee > prevee) break;
     }
     //console.log({ state, ee, minee, i, eps, mink, minK, Kmax});
     if (minee < minminee) {
       minminee = minee;
       minminK = minK;
       minmink = mink;
+      iii = ii;
     }
   }
+
+  //console.log({ state, minminee, iii });
 
   return function (date) {
     var x = oneYear.indexOf(date) - d0;
@@ -580,7 +591,7 @@ function Chart(_ref5) {
     ),
     React.createElement(
       ComposedChart,
-      { width: 800, height: 400, data: d, syncId: "aa" },
+      { width: 800, height: k === 'value' ? 300 : 400, data: d, syncId: "aa" },
       k !== 'factor' && React.createElement(Area, { type: "monotone", dataKey: "prediction", stroke: "#f82", fill: "#f828", strokeWidth: 1 }),
       area ? React.createElement(Area, { type: "monotone", dataKey: "value", stroke: "#f82", fill: "#f828", strokeWidth: 1 }) : React.createElement(Line, { type: "monotone", dataKey: "value", stroke: "#8884d8", strokeWidth: 2 }),
       React.createElement(CartesianGrid, { stroke: "#ccc", strokeDasharray: "5 5" }),
