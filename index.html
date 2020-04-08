@@ -101,6 +101,44 @@ h1 {
     transform: rotate(360deg);
   }
 }
+.heading {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0;
+}
+.heading section {
+  width: 25%;
+  text-align: center;
+}
+.heading section p {
+  margin: 0;
+  font-weight: bold;
+  color: grey;
+}
+.heading section h1 {
+  margin: 8px 0;
+}
+.heading section .grey {
+  color: grey;
+}
+.heading section .green {
+  color: #82b900;
+}
+.heading section .blue {
+  color: #6969e4;
+}
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  border-top: 1px white dashed;
+}
+footer h3 {
+  margin: 0;
+}
 
 </style>
 
@@ -135,16 +173,18 @@ var _Recharts = Recharts,
     XAxis = _Recharts.XAxis,
     YAxis = _Recharts.YAxis,
     Tooltip = _Recharts.Tooltip,
-    Legend = _Recharts.Legend;
+    Legend = _Recharts.Legend,
+    ReferenceLine = _Recharts.ReferenceLine;
 
 
-var apiurl = "https://api.rootnet.in/covid19-in/unofficial/covid19india.org";
+var rawdataurl = "https://api.covid19india.org/raw_data.json";
+var dailydataurl = "https://api.covid19india.org/states_daily.json";
 
 var td = new Date();
-var today = twodig(td.getDate()) + "/" + twodig(td.getMonth() + 1) + "/" + td.getFullYear();
+var today = dateFormat(td);
 var yd = new Date();
 yd.setDate(td.getDate() - 1);
-var yday = twodig(yd.getDate()) + "/" + twodig(yd.getMonth() + 1) + "/" + yd.getFullYear();
+var yday = dateFormat(yd);
 
 var population = {
   "Uttar Pradesh": 199812341,
@@ -187,6 +227,47 @@ var population = {
   "country": 1210569573
 };
 
+var statecodeToName = {
+  "tt": "country",
+  "mh": "Maharashtra",
+  "tn": "Tamil Nadu",
+  "dl": "Delhi",
+  "tg": "Telangana",
+  "rj": "Rajasthan",
+  "kl": "Kerala",
+  "up": "Uttar Pradesh",
+  "ap": "Andhra Pradesh",
+  "mp": "Madhya Pradesh",
+  "ka": "Karnataka",
+  "gj": "Gujarat",
+  "hr": "Haryana",
+  "jk": "Jammu and Kashmir",
+  "pb": "Punjab",
+  "wb": "West Bengal",
+  "or": "Odisha",
+  "br": "Bihar",
+  "ut": "Uttarakhand",
+  "as": "Assam",
+  "ch": "Chandigarh",
+  "hp": "Himachal Pradesh",
+  "la": "Ladakh",
+  "an": "Andaman and Nicobar Islands",
+  "ct": "Chhattisgarh",
+  "ga": "Goa",
+  "py": "Puducherry",
+  "jh": "Jharkhand",
+  "mn": "Manipur",
+  "mz": "Mizoram",
+  "ar": "Arunachal Pradesh",
+  "dn": "Dadra and Nagar Haveli",
+  "tr": "Tripura",
+  "dd": "Daman and Diu",
+  "ld": "Lakshadweep",
+  "ml": "Meghalaya",
+  "nl": "Nagaland",
+  "sk": "Sikkim"
+};
+
 // DATA PROCESSING/QUERY UTILS
 
 var pass = function pass(_) {
@@ -219,7 +300,7 @@ function select(source, keys) {
 
 function mapValues(source, mapper) {
   return Object.keys(source).reduce(function (acc, key) {
-    acc[key] = mapper(source[key]);
+    acc[key] = mapper(source[key], key);
     return acc;
   }, {});
 }
@@ -227,6 +308,10 @@ function mapValues(source, mapper) {
 function twodig(x) {
   if (x.toString().length === 1) return '0' + x.toString();
   return x.toString();
+}
+
+function dateFormat(d) {
+  return twodig(d.getDate()) + "/" + twodig(d.getMonth() + 1) + "/" + d.getFullYear();
 }
 
 function onlyPositive(x) {
@@ -264,37 +349,57 @@ function capitalize(x) {
 
 // DATA PROCESSING
 
-function getData(res) {
-  var data = res.data.rawPatientData;
-
-  var statewise = groupBy(data, 'state');
-  var statewiseDaily = mapValues(statewise, function (arr) {
-    return groupBy(arr, 'reportedOn');
+function getData(rawdata, dailydata) {
+  var data = rawdata.raw_data.filter(function (x) {
+    return x.dateannounced;
   });
-  var sdata = mapValues(statewiseDaily, function (state) {
-    return mapValues(state, function (x) {
+
+  var stateCounts = dailydata.states_daily.reduce(function (acc, x) {
+    var date = dateFormat(new Date(x.date));
+    if (!acc[date]) acc[date] = {};
+
+    if (x.status === 'Recovered') {
+      acc[date] = Object.keys(x).filter(function (k) {
+        return k !== 'date' && k !== 'status';
+      }).reduce(function (obj, statecode) {
+        if (!obj[statecodeToName[statecode]]) obj[statecodeToName[statecode]] = {};
+        obj[statecodeToName[statecode]].recovered = Number(x[statecode]);
+        return obj;
+      }, acc[date]);
+    }
+
+    if (x.status === 'Deceased') {
+      acc[date] = Object.keys(x).filter(function (k) {
+        return k !== 'date' && k !== 'status';
+      }).reduce(function (obj, statecode) {
+        if (!obj[statecodeToName[statecode]]) obj[statecodeToName[statecode]] = {};
+        obj[statecodeToName[statecode]].died = Number(x[statecode]);
+        return obj;
+      }, acc[date]);
+    }
+    return acc;
+  }, {});
+
+  var statewise = groupBy(data, 'detectedstate');
+  var statewiseDaily = mapValues(statewise, function (arr) {
+    return groupBy(arr, 'dateannounced');
+  });
+  var sdata = mapValues(statewiseDaily, function (stateobj, state) {
+    return mapValues(stateobj, function (x, date) {
       return {
         total: x.length,
-        recovered: x.filter(function (p) {
-          return p.status === 'Recovered';
-        }).length,
-        died: x.filter(function (p) {
-          return p.status === 'Deceased';
-        }).length
+        recovered: stateCounts[date] ? stateCounts[date][state].recovered : 0,
+        died: stateCounts[date] ? stateCounts[date][state].died : 0
       };
     });
   });
 
-  var daily = groupBy(data, 'reportedOn');
-  var cdata = mapValues(daily, function (x) {
+  var daily = groupBy(data, 'dateannounced');
+  var cdata = mapValues(daily, function (x, date) {
     return {
       total: x.length,
-      recovered: x.filter(function (p) {
-        return p.status === 'Recovered';
-      }).length,
-      died: x.filter(function (p) {
-        return p.status === 'Deceased';
-      }).length
+      recovered: stateCounts[date] ? stateCounts[date]['country'].recovered : 0,
+      died: stateCounts[date] ? stateCounts[date]['country'].died : 0
     };
   });
 
@@ -500,7 +605,7 @@ function curveFit(data, state) {
       minminK = void 0,
       minmink = void 0,
       iii = void 0;
-  for (var pctg = 0.005; pctg <= 0.2; pctg += 0.005) {
+  for (var pctg = 0.002; pctg <= 0.1; pctg += 0.002) {
     var K = Math.floor(population[state] * pctg / 100);
     var Kmax = K; // assuming 0.2% of population stand a chance to be affected and report
     var k = 0.15;
@@ -566,7 +671,9 @@ function Chart(_ref5) {
     return {
       x: date,
       value: data[date][state][k],
-      prediction: data[date][state][predKey]
+      prediction: data[date][state][predKey],
+      recovered: data[date][state].recovered,
+      deceased: data[date][state].died
     };
   });
 
@@ -592,13 +699,83 @@ function Chart(_ref5) {
     React.createElement(
       ComposedChart,
       { width: 800, height: k === 'value' ? 300 : 400, data: d, syncId: "aa" },
-      k !== 'factor' && React.createElement(Area, { type: "monotone", dataKey: "prediction", stroke: "#f82", fill: "#f828", strokeWidth: 1 }),
+      k !== 'factor' && k !== 'value' && React.createElement(Area, { type: "monotone", dataKey: "prediction", stroke: "#f82", fill: "#f828", strokeWidth: 1 }),
       area ? React.createElement(Area, { type: "monotone", dataKey: "value", stroke: "#f82", fill: "#f828", strokeWidth: 1 }) : React.createElement(Line, { type: "monotone", dataKey: "value", stroke: "#8884d8", strokeWidth: 2 }),
+      k === 'total' && React.createElement(Area, { type: "monotone", dataKey: "recovered", stroke: "#8c0", fill: "#8c08", strokeWidth: 1 }),
+      k === 'total' && React.createElement(Area, { type: "monotone", dataKey: "deceased", stroke: "#888", fill: "#8888", strokeWidth: 1 }),
       React.createElement(CartesianGrid, { stroke: "#ccc", strokeDasharray: "5 5" }),
       React.createElement(XAxis, { dataKey: "x" }),
       React.createElement(YAxis, { scale: semilog && 'log', domain: semilog && ['auto', 'auto'] }),
       React.createElement(Tooltip, null),
-      React.createElement(Legend, null)
+      React.createElement(Legend, null),
+      k === 'value' && React.createElement(ReferenceLine, { x: today, stroke: "#555", strokeDasharray: "3 3" }),
+      k === 'value' && React.createElement(ReferenceLine, { y: data[today][state][k], stroke: "#555", strokeDasharray: "3 3" })
+    )
+  );
+}
+
+function Heading(_ref6) {
+  var state = _ref6.state,
+      data = _ref6.data;
+
+  return React.createElement(
+    "div",
+    { className: "heading" },
+    React.createElement(
+      "section",
+      null,
+      React.createElement(
+        "p",
+        null,
+        "INFECTED"
+      ),
+      React.createElement(
+        "h1",
+        null,
+        data[today][state].total
+      )
+    ),
+    React.createElement(
+      "section",
+      null,
+      React.createElement(
+        "p",
+        null,
+        "ACTIVE"
+      ),
+      React.createElement(
+        "h1",
+        { className: "blue" },
+        data[today][state].total - (data[today][state].recovered + data[today][state].died)
+      )
+    ),
+    React.createElement(
+      "section",
+      null,
+      React.createElement(
+        "p",
+        null,
+        "RECOVERED"
+      ),
+      React.createElement(
+        "h1",
+        { className: "green" },
+        data[today][state].recovered
+      )
+    ),
+    React.createElement(
+      "section",
+      null,
+      React.createElement(
+        "p",
+        null,
+        "DECEASED"
+      ),
+      React.createElement(
+        "h1",
+        { className: "grey" },
+        data[today][state].died
+      )
     )
   );
 }
@@ -633,10 +810,21 @@ function App() {
       setPred = _React$useState8[1];
 
   React.useEffect(function () {
-    fetch(apiurl).then(function (res) {
+    var rawdata = void 0,
+        dailydata = void 0;
+    var rawdataPromise = fetch(rawdataurl).then(function (res) {
       return res.json();
     }).then(function (res) {
-      var _processData = processData(getData(res)),
+      return rawdata = res;
+    });
+    var dailydataPromise = fetch(dailydataurl).then(function (res) {
+      return res.json();
+    }).then(function (res) {
+      return dailydata = res;
+    });
+
+    Promise.all([rawdataPromise, dailydataPromise]).then(function (_) {
+      var _processData = processData(getData(rawdata, dailydata)),
           data = _processData.data,
           states = _processData.states,
           prediction = _processData.prediction;
@@ -696,11 +884,36 @@ function App() {
           null,
           st === 'country' ? 'INDIA' : st.toUpperCase()
         ),
+        React.createElement(Heading, { data: data, state: st }),
         React.createElement(Chart, { data: data, state: st, k: 'total' }),
         React.createElement(Chart, { data: pred, state: st, k: 'value', area: true }),
         React.createElement(Chart, { data: data, state: st, k: 'new' }),
         React.createElement(Chart, { data: data, state: st, k: 'diff' }),
         React.createElement(Chart, { data: data, state: st, k: 'factor', semilog: true })
+      )
+    ),
+    React.createElement(
+      "footer",
+      null,
+      React.createElement(
+        "h3",
+        null,
+        "Datasource: ",
+        React.createElement(
+          "a",
+          { href: "https://www.covid19india.org/" },
+          "covid19india.org"
+        )
+      ),
+      React.createElement(
+        "h3",
+        null,
+        "Designed and Developed by  ",
+        React.createElement(
+          "a",
+          { href: "https://gnsp.in" },
+          "Ganesh"
+        )
       )
     )
   );
