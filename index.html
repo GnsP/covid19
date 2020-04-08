@@ -111,6 +111,7 @@ h1 {
 <body>
 
 <div id="root"></div>
+<script src="https://www.googletagmanager.com/gtag/js?id=UA-110457275-1"></script>
 
 <script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
@@ -695,6 +696,13 @@ function App() {
 }
 
 ReactDOM.render(React.createElement(App, null), window.root);
+
+window.dataLayer = window.dataLayer || [];
+function gtag() {
+  dataLayer.push(arguments);
+}
+gtag('js', new Date());
+gtag('config', 'UA-110457275-1');
 //# sourceURL=userscript.js
 </script>
 </body>
