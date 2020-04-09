@@ -551,7 +551,7 @@ function curveFit(data, state) {
 
   var dates = Object.keys(data);
   var d0 = dates.indexOf('14/03/2020');
-  var currentTotal = data[today][state].total;
+  var currentTotal = data[yday][state].total;
   var p0limit = currentTotal > 100 ? 30 : currentTotal > 10 ? 5 : 2;
 
   for (var i = 0; i < dates.length; i++) {
