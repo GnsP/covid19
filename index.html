@@ -180,10 +180,10 @@ var _Recharts = Recharts,
 var rawdataurl = "https://api.covid19india.org/raw_data.json";
 var dailydataurl = "https://api.covid19india.org/states_daily.json";
 
-var td = new Date();
-var today = dateFormat(td);
+var now = new Date(); //("Apr 10 2020 13:42");
+var today = dateFormat(now);
 var yd = new Date();
-yd.setDate(td.getDate() - 1);
+yd.setDate(now.getDate() - 1);
 var yday = dateFormat(yd);
 
 var population = {
@@ -319,11 +319,10 @@ function onlyPositive(x) {
 }
 
 function getDates() {
-  var now = new Date();
   var cur = new Date('Jan 30 2020');
   var arr = [];
   while (cur < now) {
-    arr.push(twodig(cur.getDate()) + "/" + twodig(cur.getMonth() + 1) + "/" + cur.getFullYear());
+    arr.push(dateFormat(cur));
     cur.setDate(cur.getDate() + 1);
   }
   return arr;
@@ -334,7 +333,7 @@ function getOneYear() {
   var arr = [];
   var i = 0;
   while (i < 366) {
-    arr.push(twodig(cur.getDate()) + "/" + twodig(cur.getMonth() + 1) + "/" + cur.getFullYear());
+    arr.push(dateFormat(cur));
     cur.setDate(cur.getDate() + 1);
     i++;
   }
@@ -568,6 +567,12 @@ function curveFit(data, state) {
     };
   });
 
+  if (!dset.length) {
+    return function (date) {
+      return 0;
+    };
+  }
+
   var P0 = dset[0].y;
 
   var A = function A(x) {
@@ -701,8 +706,8 @@ function Chart(_ref5) {
       { width: 800, height: k === 'value' ? 300 : 400, data: d, syncId: "aa" },
       k !== 'factor' && k !== 'value' && React.createElement(Area, { type: "monotone", dataKey: "prediction", stroke: "#f82", fill: "#f828", strokeWidth: 1 }),
       area ? React.createElement(Area, { type: "monotone", dataKey: "value", stroke: "#f82", fill: "#f828", strokeWidth: 1 }) : React.createElement(Line, { type: "monotone", dataKey: "value", stroke: "#8884d8", strokeWidth: 2 }),
-      k === 'total' && React.createElement(Area, { type: "monotone", dataKey: "recovered", stroke: "#8c0", fill: "#8c08", strokeWidth: 1 }),
-      k === 'total' && React.createElement(Area, { type: "monotone", dataKey: "deceased", stroke: "#888", fill: "#8888", strokeWidth: 1 }),
+      k === 'total' && React.createElement(Area, { type: "monotone", dataKey: "deceased", stroke: "#888", fill: "#8888", strokeWidth: 1, stackId: 1 }),
+      k === 'total' && React.createElement(Area, { type: "monotone", dataKey: "recovered", stroke: "#8c0", fill: "#8c08", strokeWidth: 1, stackId: 1 }),
       React.createElement(CartesianGrid, { stroke: "#ccc", strokeDasharray: "5 5" }),
       React.createElement(XAxis, { dataKey: "x" }),
       React.createElement(YAxis, { scale: semilog && 'log', domain: semilog && ['auto', 'auto'] }),
@@ -839,6 +844,7 @@ function App() {
   if (!data) {
     return React.createElement(Loading, null);
   }
+
   return React.createElement(
     "div",
     { className: "container" },
