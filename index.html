@@ -180,7 +180,7 @@ var _Recharts = Recharts,
 var rawdataurl = "https://api.covid19india.org/raw_data.json";
 var dailydataurl = "https://api.covid19india.org/states_daily.json";
 
-var now = new Date(); //("Apr 10 2020 13:42");
+var now = new Date("Apr 10 2020 13:42");
 var today = dateFormat(now);
 var yd = new Date();
 yd.setDate(now.getDate() - 1);
@@ -610,7 +610,7 @@ function curveFit(data, state) {
       minminK = void 0,
       minmink = void 0,
       iii = void 0;
-  for (var pctg = 0.002; pctg <= 0.1; pctg += 0.002) {
+  for (var pctg = 0.005; pctg <= 0.25; pctg += 0.005) {
     var K = Math.floor(population[state] * pctg / 100);
     var Kmax = K; // assuming 0.2% of population stand a chance to be affected and report
     var k = 0.15;
