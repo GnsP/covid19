@@ -139,6 +139,17 @@ footer {
 footer h3 {
   margin: 0;
 }
+.box {
+  width: 100%;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #a54;
+  border: 1px solid;
+  margin: 25px;
+}
 
 </style>
 
@@ -219,7 +230,7 @@ var population = {
   "Jammu and Kashmir": 12267032,
   "Puducherry": 1247953,
   "Chandigarh": 1055450,
-  "Dadra and Nagar Haveli and Daman and Diu": 585764,
+  "Dadra and Nagar Haveli": 585764,
   "Andaman and Nicobar Islands": 380581,
   "Ladakh": 274000,
   "Lakshadweep": 64473,
@@ -266,6 +277,141 @@ var statecodeToName = {
   "ml": "Meghalaya",
   "nl": "Nagaland",
   "sk": "Sikkim"
+};
+
+var coeff = {
+  "Kerala": {
+    "K": 434.278793,
+    "k": 0.171
+  },
+  "Delhi": {
+    "K": 1930.613215,
+    "k": 0.203
+  },
+  "Telangana": {
+    "K": 910.095524,
+    "k": 0.202
+  },
+  "Rajasthan": {
+    "K": 171371.0925,
+    "k": 0.156
+  },
+  "Haryana": {
+    "K": 63353.303538,
+    "k": 0.062
+  },
+  "Uttar Pradesh": {
+    "K": 1598.498728,
+    "k": 0.155
+  },
+  "Ladakh": {
+    "K": 14.248,
+    "k": 0.233
+  },
+  "Tamil Nadu": {
+    "K": 1010.05842,
+    "k": 0.346
+  },
+  "Jammu and Kashmir": {
+    "K": 13824.945064,
+    "k": 0.142
+  },
+  "Karnataka": {
+    "K": 244.381188,
+    "k": 0.193
+  },
+  "Maharashtra": {
+    "K": 222164.056341,
+    "k": 0.159
+  },
+  "Punjab": {
+    "K": 69302.858324,
+    "k": 0.119
+  },
+  "Andhra Pradesh": {
+    "K": 396.616824,
+    "k": 0.496
+  },
+  "Uttarakhand": {
+    "K": 25135.039664,
+    "k": 0.117
+  },
+  "Odisha": {
+    "K": 83.948436,
+    "k": 0.26
+  },
+  "Puducherry": {
+    "K": 4.991812,
+    "k": 0.999
+  },
+  "West Bengal": {
+    "K": 182.55223,
+    "k": 0.197
+  },
+  "Chandigarh": {
+    "K": 23.2199,
+    "k": 0.146
+  },
+  "Chhattisgarh": {
+    "K": 25.545198,
+    "k": 0.155
+  },
+  "Gujarat": {
+    "K": 151099.23,
+    "k": 0.127
+  },
+  "Himachal Pradesh": {
+    "K": 17134.046592,
+    "k": 0.128
+  },
+  "Madhya Pradesh": {
+    "K": 944.148517,
+    "k": 0.242
+  },
+  "Bihar": {
+    "K": 104.099452,
+    "k": 0.211
+  },
+  "Manipur": {
+    "K": 2.57039,
+    "k": 0.001
+  },
+  "Mizoram": {
+    "K": 1.097206,
+    "k": 0.001
+  },
+  "Goa": {
+    "K": 10.209815,
+    "k": 0.124
+  },
+  "Andaman and Nicobar Islands": {
+    "K": 10.275687,
+    "k": 0.999
+  },
+  "Jharkhand": {
+    "K": 80590.011362,
+    "k": 0.31
+  },
+  "Assam": {
+    "K": 31.205576,
+    "k": 0.357
+  },
+  "Arunachal Pradesh": {
+    "K": 1.383727,
+    "k": 0.001
+  },
+  "Dadra and Nagar Haveli": {
+    "K": 1.171528,
+    "k": 0.001
+  },
+  "Tripura": {
+    "K": 3.673917,
+    "k": 0.001
+  },
+  "country": {
+    "K": 21790.252314,
+    "k": 0.174
+  }
 };
 
 // DATA PROCESSING/QUERY UTILS
@@ -575,8 +721,6 @@ function curveFit(data, state) {
   }
 
   var P0 = dset[0].y;
-  var eps = relative ? 0.001 : 1;
-
   var A = function A(x) {
     return (x - P0) / P0;
   };
@@ -584,12 +728,22 @@ function curveFit(data, state) {
     return K / (1 + A(K) * Math.exp(-k * t));
   };
 
+  //console.log(coeff[state].K, coeff[state].k, state);
+  //console.log(f(coeff[state].K, coeff[state].k, 15))
+  return function (date) {
+    var x = oneYear.indexOf(date) - d0;
+    var res = Math.floor(f(coeff[state].K, coeff[state].k, x));
+    return res;
+  };
+
+  var eps = relative ? 0.001 : 1;
+
   var err = function err(K, k) {
     return dset.reduce(function (acc, _ref2) {
       var x = _ref2.x,
           y = _ref2.y;
       return acc + Math.pow((y - f(K, k, x)) / (relative ? y : 1), 2);
-    }, 0) / dset.length;
+    }, 0) / (relative ? dset.length : 1);
   };
 
   var dedK = function dedK(K, k) {
@@ -896,7 +1050,15 @@ function App() {
         ),
         React.createElement(Heading, { data: data, state: st }),
         React.createElement(Chart, { data: data, state: st, k: 'total' }),
-        React.createElement(Chart, { data: pred, state: st, k: 'value', area: true }),
+        data[today][st].total < 20 ? React.createElement(
+          "div",
+          { className: "box" },
+          React.createElement(
+            "h2",
+            null,
+            "Not enough data available for prediction"
+          )
+        ) : React.createElement(Chart, { data: pred, state: st, k: 'value', area: true }),
         React.createElement(Chart, { data: data, state: st, k: 'new' }),
         React.createElement(Chart, { data: data, state: st, k: 'diff' }),
         React.createElement(Chart, { data: data, state: st, k: 'factor', semilog: true })
