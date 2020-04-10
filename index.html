@@ -180,7 +180,7 @@ var _Recharts = Recharts,
 var rawdataurl = "https://api.covid19india.org/raw_data.json";
 var dailydataurl = "https://api.covid19india.org/states_daily.json";
 
-var now = new Date("Apr 10 2020 13:42");
+var now = new Date("Apr 11 2020 13:42");
 var today = dateFormat(now);
 var yd = new Date();
 yd.setDate(now.getDate() - 1);
@@ -546,12 +546,13 @@ function processData(_ref) {
 }
 
 function curveFit(data, state) {
-  var eps = 0.01;
-
   var dates = Object.keys(data);
   var d0 = dates.indexOf('14/03/2020');
   var currentTotal = data[yday][state].total;
-  var p0limit = currentTotal > 100 ? 30 : currentTotal > 10 ? 5 : 2;
+  var p0limit = currentTotal > 1000 ? 100 : currentTotal > 200 ? 20 : 5;
+  //currentTotal > 100 ? 5 : 2;
+
+  var relative = currentTotal > 20;
 
   for (var i = 0; i < dates.length; i++) {
     if (data[dates[i]][state].total > p0limit) {
@@ -574,6 +575,7 @@ function curveFit(data, state) {
   }
 
   var P0 = dset[0].y;
+  var eps = relative ? 0.001 : 1;
 
   var A = function A(x) {
     return (x - P0) / P0;
@@ -586,7 +588,7 @@ function curveFit(data, state) {
     return dset.reduce(function (acc, _ref2) {
       var x = _ref2.x,
           y = _ref2.y;
-      return acc + Math.pow((y - f(K, k, x)) / y, 2);
+      return acc + Math.pow((y - f(K, k, x)) / (relative ? y : 1), 2);
     }, 0) / dset.length;
   };
 
@@ -594,7 +596,7 @@ function curveFit(data, state) {
     return -2 * dset.reduce(function (acc, _ref3) {
       var x = _ref3.x,
           y = _ref3.y;
-      return acc + (y - f(K, k, x)) * (P0 + K) * (1 - Math.exp(-k * x)) * P0 * Math.pow(y, -2) / (Math.pow(P0, 2) + Math.exp(-2 * k * x) * Math.pow(K - P0, 2) - 2 * P0 * Math.exp(-k * x) * (K - P0));
+      return acc + (y - f(K, k, x)) * (P0 + K) * (1 - Math.exp(-k * x)) * P0 * (relative ? Math.pow(y, -2) : 1) / (Math.pow(P0, 2) + Math.exp(-2 * k * x) * Math.pow(K - P0, 2) - 2 * P0 * Math.exp(-k * x) * (K - P0));
     }, 0);
   };
 
@@ -602,15 +604,16 @@ function curveFit(data, state) {
     return -2 * dset.reduce(function (acc, _ref4) {
       var x = _ref4.x,
           y = _ref4.y;
-      return acc + (y - f(K, k, x)) * K * A(K) * x * Math.exp(-k * x) * Math.pow(y, -2) / Math.pow(1 + A(K) * Math.exp(-k * x), 2);
+      return acc + (y - f(K, k, x)) * K * A(K) * x * Math.exp(-k * x) * (relative ? Math.pow(y, -2) : 1) / Math.pow(1 + A(K) * Math.exp(-k * x), 2);
     }, 0);
   };
 
   var minminee = Infinity,
       minminK = void 0,
       minmink = void 0,
-      iii = void 0;
-  for (var pctg = 0.005; pctg <= 0.25; pctg += 0.005) {
+      iii = void 0,
+      minpctg = void 0;
+  for (var pctg = 0.005; pctg <= 0.2; pctg += 0.005) {
     var K = Math.floor(population[state] * pctg / 100);
     var Kmax = K; // assuming 0.2% of population stand a chance to be affected and report
     var k = 0.15;
@@ -651,10 +654,11 @@ function curveFit(data, state) {
       minminK = minK;
       minmink = mink;
       iii = ii;
+      minpctg = pctg;
     }
   }
 
-  //console.log({ state, minminee, iii });
+  //console.log(`${state} -- ${minpctg}`);
 
   return function (date) {
     var x = oneYear.indexOf(date) - d0;
