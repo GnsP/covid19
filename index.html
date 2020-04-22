@@ -620,6 +620,9 @@ function processData(_ref) {
     }, 0);
   });
   //console.log(prediction);
+  states.sort(function (a, b) {
+    return data[today][b].total - data[today][a].total;
+  });
   return { data: data, states: states, prediction: prediction };
 }
 
