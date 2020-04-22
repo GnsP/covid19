@@ -280,39 +280,39 @@ var statecodeToName = {
 };
 
 var coeff = {
-  "Kerala": [427.597581, 0.171],
-  "Delhi": [2269.729623, 0.253],
-  "Telangana": [980.102872, 0.191],
-  "Rajasthan": [2193.549984, 0.2],
-  "Haryana": [332.104152, 0.129],
-  "Uttar Pradesh": [2881.293957, 0.147],
-  "Ladakh": [19.18, 0.129],
-  "Tamil Nadu": [1601.664066, 0.271],
-  "Jammu and Kashmir": [450.200074, 0.177],
-  "Karnataka": [586.514851, 0.132],
-  "Maharashtra": [9020.28771, 0.166],
-  "Punjab": [441.119074, 0.113],
-  "Andhra Pradesh": [758.529676, 0.28],
-  "Uttarakhand": [50.43146, 0.149],
-  "Odisha": [79.751014, 0.239],
-  "Puducherry": [7.487718, 0.214],
-  "West Bengal": [857.995481, 0.15],
-  "Chandigarh": [27.4417, 0.119],
-  "Chhattisgarh": [51.090396, 0.152],
-  "Gujarat": [12873.654396, 0.189],
-  "Himachal Pradesh": [48.052214, 0.16],
-  "Madhya Pradesh": [2280.481803, 0.206],
-  "Bihar": [144.698238, 0.16],
-  "Manipur": [2570.39, 0.001],
-  "Mizoram": [1097.206, 0.001],
-  "Goa": [7.292725, 0.2],
-  "Andaman and Nicobar Islands": [22.83486, 0.065],
-  "Jharkhand": [49.482201, 0.304],
-  "Assam": [37.446691, 0.185],
-  "Arunachal Pradesh": [1383.727, 0.001],
-  "Tripura": [3673.917, 0.001],
-  "Meghalaya": [14.834445, 0.255],
-  "country": [27479.929307, 0.17],
+  "Kerala": [450.981824, 0.163, 2.25, 0.253, 448, 0.267],
+  "Delhi": [2341.917769, 0.248, 53.843, 0.256, 2288, 0.193],
+  "Telangana": [1004.605444, 0.189, 25.1, 0.25, 979, 0.154],
+  "Rajasthan": [2364.921076, 0.195, 35.46, 0.269, 2329, 0.153],
+  "Haryana": [332.104152, 0.129, 5.312, 0.053, 326, 0.089],
+  "Uttar Pradesh": [3145.046247, 0.145, 478.04, 0.117, 2667, 0.145],
+  "Ladakh": [19.18, 0.128, 1.007, 0.001, 18, 0.081],
+  "Tamil Nadu": [1666.596393, 0.26, 23.324, 0.151, 1643, 0.272],
+  "Jammu and Kashmir": [456.33359, 0.176, 6.384, 0.117, 449, 0.168],
+  "Karnataka": [574.295792, 0.133, 43.05, 0.124, 531, 0.181],
+  "Maharashtra": [9806.908041, 0.164, 294.18, 0.212, 9512, 0.247],
+  "Punjab": [441.119074, 0.113, 21.168, 0.131, 419, 0.162],
+  "Andhra Pradesh": [872.557013, 0.254, 28.776, 0.244, 843, 0.171],
+  "Uttarakhand": [50.43146, 0.149, 1, 0.001, 49, 0.115],
+  "Odisha": [88.145858, 0.221, 8.008, 0.001, 80, 0.191],
+  "Puducherry": [7.487718, 0.213, 1.001, 0.001, 6, 0.001],
+  "West Bengal": [940.143985, 0.148, 35.72, 0.136, 904, 0.158],
+  "Chandigarh": [27.4417, 0.119, 1.026, 0.001, 26, 0.001],
+  "Chhattisgarh": [48.535876, 0.154, 1.008, 0.001, 47, 0.098],
+  "Gujarat": [7645.621038, 0.195, 1521.355, 0.15, 6124, 0.221],
+  "Himachal Pradesh": [48.052214, 0.159, 1.008, 0.001, 47, 0.18],
+  "Madhya Pradesh": [2135.228185, 0.21, 85.4, 0.25, 2049, 0.253],
+  "Bihar": [176.969068, 0.15, 35.024, 0.013, 141, 0.123],
+  "Manipur": [2570.39, 0.001, 2.57, 0.001, 2567, 0.001],
+  "Mizoram": [1097.206, 0.001, 1.097, 0.001, 1096, 0.001],
+  "Goa": [7.292725, 0.2, 1.001, 0.001, 6, 0.001],
+  "Andaman and Nicobar Islands": [22.83486, 0.067, 1.012, 0.001, 21, 0.001],
+  "Jharkhand": [49.482201, 0.304, 2.009, 0.546, 47, 0.001],
+  "Assam": [37.446691, 0.184, 1.036, 0.001, 36, 0.001],
+  "Arunachal Pradesh": [1383.727, 0.001, 1.383, 0.001, 1382, 0.001],
+  "Tripura": [3673.917, 0.001, 3.673, 0.001, 3670, 0.001],
+  "Meghalaya": [14.834445, 0.243, 2.002, 0.001, 12, 0.001],
+  "country": [28600.916732, 0.169, 809.38, 0.191, 27816.0119, 0.163]
 };
 
 // DATA PROCESSING/QUERY UTILS
@@ -396,6 +396,7 @@ function capitalize(x) {
 // DATA PROCESSING
 
 function getData(rawdata, dailydata) {
+  //console.log({ rawdata, dailydata });
   var data = rawdata.raw_data.filter(function (x) {
     return x.dateannounced;
   });
@@ -465,7 +466,6 @@ function processData(_ref) {
       country: {
         new: 0,
         total: 0,
-        diff: 0,
         factor: 1,
         recovered: 0,
         died: 0
@@ -474,7 +474,6 @@ function processData(_ref) {
       acc[state] = {
         new: 0,
         total: 0,
-        diff: 0,
         factor: 1,
         recovered: 0,
         died: 0
@@ -486,12 +485,17 @@ function processData(_ref) {
     obj.country = {};
     obj.country.new = cdata[date] ? cdata[date].total : 0;
     obj.country.total = prev.country.total + obj.country.new;
-    obj.country.diff = obj.country.new - prev.country.new;
     obj.country.factor = prev.country.total ? obj.country.total / prev.country.total : 1;
     obj.country.factor = Math.round((obj.country.factor + Number.EPSILON) * 1000) / 1000;
 
-    obj.country.recovered = (cdata[date] ? cdata[date].recovered : 0) + prev.country.recovered;
-    obj.country.died = (cdata[date] ? cdata[date].died : 0) + prev.country.died;
+    obj.country.newRecovered = cdata[date] ? cdata[date].recovered : 0;
+    obj.country.recovered = obj.country.newRecovered + prev.country.recovered;
+    obj.country.newDied = cdata[date] ? cdata[date].died : 0;
+    obj.country.died = obj.country.newDied + prev.country.died;
+    obj.country.active = obj.country.total - (obj.country.recovered + obj.country.died);
+
+    obj.country.recoveryFraction = obj.country.total ? obj.country.recovered / obj.country.total : 0;
+    obj.country.diedFraction = obj.country.total ? obj.country.died / obj.country.total : 0;
 
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
@@ -504,12 +508,14 @@ function processData(_ref) {
         obj[state] = {};
         obj[state].new = sdata[state][date] ? sdata[state][date].total : 0;
         obj[state].total = prev[state].total + obj[state].new;
-        obj[state].diff = obj[state].new - prev[state].new;
         obj[state].factor = prev[state].total ? obj[state].total / prev[state].total : 1;
         obj[state].factor = Math.round((obj[state].factor + Number.EPSILON) * 1000) / 1000;
 
-        obj[state].recovered = (sdata[state][date] ? sdata[state][date].recovered : 0) + prev[state].recovered;
-        obj[state].died = (sdata[state][date] ? sdata[state][date].died : 0) + prev[state].died;
+        obj[state].newRecovered = sdata[state][date] ? sdata[state][date].recovered : 0;
+        obj[state].recovered = obj[state].newRecovered + prev[state].recovered;
+        obj[state].newDied = sdata[state][date] ? sdata[state][date].died : 0;
+        obj[state].died = obj[state].newDied + prev[state].died;
+        obj[state].active = obj[state].total - (obj[state].recovered + obj[state].died);
       }
     } catch (err) {
       _didIteratorError = true;
@@ -563,19 +569,39 @@ function processData(_ref) {
   dates.forEach(function (date, ind) {
     var prevDate = ind > 0 ? dates[ind - 1] : undefined;
     Object.keys(data[date]).forEach(function (state) {
-      data[date][state].predictedTotal = fns[state](date);
-      if (Number.isNaN(data[date][state].predictedTotal)) return;
+      var _fns$state = fns[state](date),
+          _fns$state2 = _slicedToArray(_fns$state, 3),
+          predTot = _fns$state2[0],
+          predRec = _fns$state2[1],
+          predDed = _fns$state2[2];
+
+      data[date][state].predictedTotal = predTot;
+      if (Number.isNaN(predTot)) return;
+
       data[date][state].predictedNew = onlyPositive(data[date][state].predictedTotal - (prevDate ? data[prevDate][state].predictedTotal : 0));
-      data[date][state].predictedDiff = data[date][state].predictedNew - (prevDate ? data[prevDate][state].predictedNew : 0);
-      data[date][state].predictedFactor = prevDate ? data[date][state].predictedTotal / data[prevDate][state].predictedTotal : 1;
+      data[date][state].predictedFactor = prevDate && data[prevDate][state].predictedTotal ? data[date][state].predictedTotal / data[prevDate][state].predictedTotal : 1;
       data[date][state].predictedFactor = Math.round((data[date][state].predictedFactor + Number.EPSILON) * 1000) / 1000;
+
+      data[date][state].predictedRecovered = predRec;
+      data[date][state].predictedNewRecovered = onlyPositive(data[date][state].predictedRecovered - (prevDate ? data[prevDate][state].predictedRecovered : 0));
+
+      data[date][state].predictedDied = predDed;
+      data[date][state].predictedActive = onlyPositive(data[date][state].predictedTotal - (data[date][state].predictedRecovered + data[date][state].predictedDied));
     });
   });
 
   var prediction = oneYear.reduce(function (acc, date) {
     acc[date] = [].concat(_toConsumableArray(states), ['country']).reduce(function (obj, state) {
+      var _fns$state3 = fns[state](date),
+          _fns$state4 = _slicedToArray(_fns$state3, 3),
+          predTot = _fns$state4[0],
+          predRec = _fns$state4[1],
+          predDed = _fns$state4[2];
+
       obj[state] = {
-        value: fns[state](date)
+        cases: predTot,
+        recovery: predRec,
+        death: predDed
       };
       return obj;
     }, {});
@@ -583,8 +609,14 @@ function processData(_ref) {
   }, {});
 
   oneYear.forEach(function (date) {
-    prediction[date].country.value = states.reduce(function (acc, state) {
-      return acc + (prediction[date][state].value || 0);
+    prediction[date].country.cases = states.reduce(function (acc, state) {
+      return acc + (prediction[date][state].cases || 0);
+    }, 0);
+    prediction[date].country.recovery = states.reduce(function (acc, state) {
+      return acc + (prediction[date][state].recovery || 0);
+    }, 0);
+    prediction[date].country.death = states.reduce(function (acc, state) {
+      return acc + (prediction[date][state].death || 0);
     }, 0);
   });
   //console.log(prediction);
@@ -593,7 +625,10 @@ function processData(_ref) {
 
 function curveFit(data, state) {
   var dates = Object.keys(data);
-  var d0 = dates.indexOf('14/03/2020');
+  var d0 = 0;
+  var rd0 = 0;
+  var dd0 = 0;
+
   var currentTotal = data[yday][state].total;
   var p0limit = currentTotal > 1000 ? 100 : currentTotal > 200 ? 20 : 5;
   //currentTotal > 100 ? 5 : 2;
@@ -601,9 +636,14 @@ function curveFit(data, state) {
   var relative = currentTotal > 20;
 
   for (var i = 0; i < dates.length; i++) {
-    if (data[dates[i]][state].total > p0limit) {
+    if (!d0 && data[dates[i]][state].total > p0limit) {
       d0 = i;
-      break;
+    }
+    if (!rd0 && data[dates[i]][state].recovered > 0) {
+      rd0 = i;
+    }
+    if (!dd0 && data[dates[i]][state].died > 0) {
+      dd0 = i;
     }
   }
 
@@ -614,25 +654,47 @@ function curveFit(data, state) {
     };
   });
 
-  if (!dset.length) {
-    return function (date) {
-      return 0;
+  var rdset = dates.slice(rd0, -1).map(function (dt, ind) {
+    return {
+      x: ind,
+      y: data[dt][state].recovered
     };
-  }
+  });
+
+  var ddset = dates.slice(dd0, -1).map(function (dt, ind) {
+    return {
+      x: ind,
+      y: data[dt][state].died
+    };
+  });
 
   var P0 = dset[0].y;
+  var RP0 = rdset[0].y;
+  var DP0 = ddset[0].y;
+
   var A = function A(x) {
     return (x - P0) / P0;
   };
-  var f = function f(K, k, t) {
+  var RA = function RA(x) {
+    return (x - RP0) / RP0;
+  };
+  var DA = function DA(x) {
+    return (x - DP0) / DP0;
+  };
+
+  var f = function f(K, k, t, A) {
     return K / (1 + A(K) * Math.exp(-k * t));
   };
 
   //console.log(coeff[state].K, coeff[state].k, state);
   //console.log(f(coeff[state].K, coeff[state].k, 15))
   return function (date) {
-    var x = oneYear.indexOf(date) - d0;
-    var res = Math.floor(f(coeff[state][0], coeff[state][1], x));
+    var dind = oneYear.indexOf(date);
+    var x = dind - d0;
+    var rx = dind - rd0;
+    var dx = dind - dd0;
+
+    var res = [dset.length ? Math.floor(f(coeff[state][0], coeff[state][1], x, A)) : 0, rdset.length ? Math.floor(f(coeff[state][4], coeff[state][5], rx, RA)) : 0, ddset.length ? Math.floor(f(coeff[state][2], coeff[state][3], dx, DA)) : 0];
     return res;
   };
 }
@@ -653,17 +715,26 @@ function Chart(_ref2) {
       value: data[date][state][k],
       prediction: data[date][state][predKey],
       recovered: data[date][state].recovered,
-      deceased: data[date][state].died
+      deceased: data[date][state].died,
+      recovery: data[date][state].recovery,
+      death: data[date][state].death
     };
   });
 
   var heading = {
     total: 'Total number of infections',
     new: 'New infections',
-    diff: 'Growth in number of new infections',
     factor: 'Rate of growth of total number of infections',
-    value: 'Prediction for a year'
+    cases: 'Prediction for a year',
+    newRecovered: 'New Recoveries',
+    active: 'Active cases'
   };
+
+  var noPrediction = ['value'].includes(k);
+  var showPrediction = !noPrediction;
+  var dwarf = ['cases', 'active', 'new', 'newRecovered'].includes(k);
+  var predStrokeColor = k === 'newRecovered' ? '#8c0' : k === 'new' ? '#f40' : k === 'factor' ? '#4af' : '#f82';
+  var predFillColor = k === 'newRecovered' ? '#8c08' : k === 'new' ? '#f408' : k === 'factor' ? '#4af8' : '#f828';
 
   return React.createElement(
     "div",
@@ -678,18 +749,20 @@ function Chart(_ref2) {
     ),
     React.createElement(
       ComposedChart,
-      { width: 800, height: k === 'value' ? 300 : 400, data: d, syncId: "aa" },
-      k !== 'factor' && k !== 'value' && React.createElement(Area, { type: "monotone", dataKey: "prediction", stroke: "#f82", fill: "#f828", strokeWidth: 1 }),
-      area ? React.createElement(Area, { type: "monotone", dataKey: "value", stroke: "#f82", fill: "#f828", strokeWidth: 1 }) : React.createElement(Line, { type: "monotone", dataKey: "value", stroke: "#8884d8", strokeWidth: 2 }),
+      { width: 800, height: dwarf ? 300 : 400, data: d, syncId: "aa" },
+      showPrediction && React.createElement(Area, { type: "monotone", dataKey: "prediction", stroke: predStrokeColor, fill: predFillColor, strokeWidth: 1 }),
+      area ? React.createElement(Area, { type: "monotone", dataKey: "value", stroke: "#f82", fill: "#f828", strokeWidth: 1 }) : React.createElement(Line, { type: "monotone", dataKey: "value", stroke: "#646", strokeWidth: 2 }),
       k === 'total' && React.createElement(Area, { type: "monotone", dataKey: "deceased", stroke: "#888", fill: "#8888", strokeWidth: 1, stackId: 1 }),
       k === 'total' && React.createElement(Area, { type: "monotone", dataKey: "recovered", stroke: "#8c0", fill: "#8c08", strokeWidth: 1, stackId: 1 }),
+      k === 'cases' && data[today][state].death > 3 && React.createElement(Area, { type: "monotone", dataKey: "death", stroke: "#888", fill: "#8888", strokeWidth: 1, stackId: 2 }),
+      k === 'cases' && data[today][state].recovery > 5 && React.createElement(Area, { type: "monotone", dataKey: "recovery", stroke: "#8c0", fill: "#8c08", strokeWidth: 1, stackId: 2 }),
       React.createElement(CartesianGrid, { stroke: "#ccc", strokeDasharray: "5 5" }),
       React.createElement(XAxis, { dataKey: "x" }),
       React.createElement(YAxis, { scale: semilog && 'log', domain: semilog && ['auto', 'auto'] }),
       React.createElement(Tooltip, null),
       React.createElement(Legend, null),
-      k === 'value' && React.createElement(ReferenceLine, { x: today, stroke: "#555", strokeDasharray: "3 3" }),
-      k === 'value' && React.createElement(ReferenceLine, { y: data[today][state][k], stroke: "#555", strokeDasharray: "3 3" })
+      k === 'cases' && React.createElement(ReferenceLine, { x: today, stroke: "#555", strokeDasharray: "3 3" }),
+      k === 'cases' && React.createElement(ReferenceLine, { y: data[today][state][k], stroke: "#555", strokeDasharray: "3 3" })
     )
   );
 }
@@ -875,9 +948,10 @@ function App() {
             null,
             "Not enough data available for prediction"
           )
-        ) : React.createElement(Chart, { data: pred, state: st, k: 'value', area: true }),
+        ) : React.createElement(Chart, { data: pred, state: st, k: 'cases', area: true }),
         React.createElement(Chart, { data: data, state: st, k: 'new' }),
-        React.createElement(Chart, { data: data, state: st, k: 'diff' }),
+        React.createElement(Chart, { data: data, state: st, k: 'newRecovered' }),
+        React.createElement(Chart, { data: data, state: st, k: 'active' }),
         React.createElement(Chart, { data: data, state: st, k: 'factor', semilog: true })
       )
     ),
