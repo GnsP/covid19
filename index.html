@@ -195,7 +195,8 @@ var _Recharts = Recharts,
     ReferenceLine = _Recharts.ReferenceLine;
 
 
-var rawdataurl = "https://api.covid19india.org/raw_data.json";
+var frozendataurl = "http://gnsp.in/covid19/compressed.json";
+var latestdataurl = "https://api.covid19india.org/data.json";
 var dailydataurl = "https://api.covid19india.org/states_daily.json";
 
 var now = new Date();
@@ -287,77 +288,38 @@ var statecodeToName = {
 };
 
 var coeff = {
-  "Kerala": [481.047278, 0.155, 3.848, 0.049, 477, 0.252],
-  "Delhi": [3211.533113, 0.203, 54.587, 0.255, 3156, 0.192],
-  "Telangana": [1039.609118, 0.196, 25.975, 0.239, 1013, 0.15],
-  "Rajasthan": [2529.437325, 0.19, 37.935, 0.26, 2491, 0.153],
-  "Haryana": [332.104152, 0.129, 3.32, 0.106, 328, 0.097],
-  "Uttar Pradesh": [3123.06689, 0.145, 65.583, 0.128, 3057, 0.144],
-  "Ladakh": [21.92, 0.099, 1.008, 0.001, 20, 0.062],
-  "Tamil Nadu": [1955.184513, 0.222, 27.37, 0.143, 1927, 0.263],
-  "Jammu and Kashmir": [552.01644, 0.16, 6.072, 0.127, 545, 0.162],
-  "Karnataka": [610.95297, 0.13, 25.01, 0.137, 585, 0.169],
-  "Maharashtra": [13611.902956, 0.157, 329.3862, 0.206, 13268.718, 0.23],
-  "Punjab": [441.119074, 0.113, 20.286, 0.132, 420, 0.157],
-  "Andhra Pradesh": [1457.566828, 0.135, 37.882, 0.223, 1419, 0.169],
-  "Uttarakhand": [54.465977, 0.142, 1.026, 0.001, 53, 0.115],
-  "Odisha": [117.52781, 0.134, 9.009, 0.001, 108, 0.167],
-  "Puducherry": [8.735671, 0.128, 1.008, 0.001, 7, 0.001],
-  "West Bengal": [1286.993222, 0.142, 28.292, 0.142, 1258, 0.147],
-  "Chandigarh": [44.3289, 0.08, 1.012, 0.001, 43, 0.001],
-  "Chhattisgarh": [43.426837, 0.161, 1.032, 0.001, 42, 0.094],
-  "Gujarat": [4925.834898, 0.206, 374.3, 0.156, 4551, 0.213],
-  "Himachal Pradesh": [41.187612, 0.176, 2.009, 0.001, 39, 0.158],
-  "Madhya Pradesh": [2287.744484, 0.204, 100.628, 0.233, 2187, 0.233],
-  "Bihar": [2089276.00164, 0.094, 363534.024, 0.016, 1724532.9813, 0.102],
-  "Manipur": [2570.39, 0.001, 2.57, 0.001, 2567, 0.001],
-  "Mizoram": [1097.206, 0.001, 1.097, 0.001, 1096, 0.001],
-  "Goa": [7.292725, 0.199, 1.001, 0.001, 6, 0.001],
-  "Andaman and Nicobar Islands": [7642.06648, 0.049, 7.642, 0.001, 7634, 0.001],
-  "Jharkhand": [98.964402, 0.215, 4.9, 0.089, 94, 0.145],
-  "Assam": [37.446691, 0.183, 1.036, 0.001, 36, 0.001],
-  "Arunachal Pradesh": [1383.727, 0.001, 1.383, 0.001, 1382, 0.001],
-  "Tripura": [3673.917, 0.001, 3.673, 0.001, 3670, 0.001],
-  "Meghalaya": [14.834445, 0.193, 2.002, 0.001, 12, 0.001],
-  "country": [34343.858786, 0.164, 927.261, 0.186, 33382.584, 0.16]
+  "Kerala": [514.453339, 0.158, 4.626, 0.089, 509, 0.144],
+  "Delhi": [3527.146404, 0.192, 81.121, 0.121, 3446, 0.166],
+  "Telangana": [1046.609853, 0.194, 25.104, 0.251, 1021, 0.149],
+  "Rajasthan": [2618.550293, 0.186, 62.832, 0.221, 2555, 0.156],
+  "Haryana": [489.283217, 0.079, 3.423, 0.082, 485, 0.097],
+  "Uttar Pradesh": [3398.80792, 0.134, 78.154, 0.126, 3320, 0.103],
+  "Ladakh": [27.4, 0.103, 1.026, 0.001, 26, 0.093],
+  "Tamil Nadu": [2186.055009, 0.199, 30.604, 0.137, 2155, 0.184],
+  "Jammu and Kashmir": [586.36413, 0.169, 9.962, 0.086, 576, 0.163],
+  "Karnataka": [635.391089, 0.124, 55.245, 0.079, 580, 0.153],
+  "Maharashtra": [15927.937959, 0.146, 430.029, 0.19, 15481.503, 0.223],
+  "Punjab": [457.765077, 0.11, 20.108, 0.134, 437, 0.156],
+  "Andhra Pradesh": [1854.183652, 0.124, 35.226, 0.231, 1818, 0.17],
+  "Uttarakhand": [57.491864, 0.136, 1.026, 0.001, 56, 0.138],
+  "Odisha": [146.909763, 0.118, 7.008, 0.001, 139, 0.161],
+  "Puducherry": [8.735671, 0.127, 1.008, 0.001, 7, 0.124],
+  "West Bengal": [1286.993222, 0.142, 63.014, 0.098, 1223, 0.141],
+  "Chandigarh": [246.9753, 0.059, 1.23, 0.001, 245, 0.082],
+  "Chhattisgarh": [40.872317, 0.168, 1, 0.001, 39, 0.178],
+  "Gujarat": [4950.010775, 0.206, 440.55, 0.155, 4509, 0.21],
+  "Himachal Pradesh": [41.187612, 0.176, 2.05, 0.12, 39, 0.141],
+  "Madhya Pradesh": [2614.565124, 0.191, 133.314, 0.205, 2481, 0.226],
+  "Bihar": [10523830.000488, 0.098, 2104766, 0.017, 8410223.9828, 0.124],
+  "Goa": [7.292725, 0.199, 1.001, 0.001, 0, 0.001],
+  "Andaman and Nicobar Islands": [38001.01285, 0.051, 38.001, 0.001, 37963, 0.009],
+  "Jharkhand": [105628.005068, 0.109, 4.22512, 0.115, 105623, 0.195],
+  "Assam": [40.567249, 0.138, 1, 0.001, 39, 0.346],
+  "Meghalaya": [14.834445, 0.173, 2.002, 0.001, 12, 0.001],
+  "country": [41581.854263, 0.144, 1076.9479, 0.18, 40463.496, 0.158]
 };
 
 // DATA PROCESSING/QUERY UTILS
-
-var pass = function pass(_) {
-  return true;
-};
-var fail = function fail(_) {
-  return false;
-};
-
-function groupBy(source, key) {
-  var cond = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : pass;
-
-  return source.reduce(function (acc, p) {
-    if (p[key] && cond(p[key])) {
-      if (!acc[p[key]]) acc[p[key]] = [];
-      acc[p[key]].push(p);
-    }
-    return acc;
-  }, {});
-}
-
-function select(source, keys) {
-  return source.map(function (x) {
-    return Object.keys(x).reduce(function (acc, key) {
-      if (keys.includes(key)) acc[key] = x[key];
-      return acc;
-    }, {});
-  });
-}
-
-function mapValues(source, mapper) {
-  return Object.keys(source).reduce(function (acc, key) {
-    acc[key] = mapper(source[key], key);
-    return acc;
-  }, {});
-}
 
 function twodig(x) {
   if (x.toString().length === 1) return '0' + x.toString();
@@ -400,13 +362,83 @@ function capitalize(x) {
   return x[0].toUpperCase() + x.slice(1);
 }
 
+function merge(d1, d2) {
+  var obj = _extends({}, d1, { before: today });
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    var _loop = function _loop() {
+      var state = _step.value;
+
+      obj.sdata[state] = Object.keys(d2.sdata[state]).reduce(function (acc, date) {
+        acc[date] = d2.sdata[state][date];
+        return acc;
+      }, obj.sdata[state] || {});
+    };
+
+    for (var _iterator = Object.keys(d2.sdata)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      _loop();
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
+
+  try {
+    for (var _iterator2 = Object.keys(d2.cdata)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var date = _step2.value;
+
+      obj.cdata[date] = d2.cdata[date];
+    }
+  } catch (err) {
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
+      }
+    } finally {
+      if (_didIteratorError2) {
+        throw _iteratorError2;
+      }
+    }
+  }
+
+  return obj;
+}
+
 // DATA PROCESSING
 
-function getData(rawdata, dailydata) {
-  //console.log({ rawdata, dailydata });
-  var data = rawdata.raw_data.filter(function (x) {
-    return x.dateannounced;
-  });
+function getData(dailydata, _latestdata) {
+  var latestdata = _latestdata.reduce(function (acc, x) {
+    acc[statecodeToName[x.statecode.toLowerCase()]] = {
+      total: Number(x.deltaconfirmed),
+      recovered: Number(x.deltarecovered),
+      died: Number(x.deltadeaths),
+      latestdate: x.lastupdatedtime.split(' ')[0],
+      cumcon: Number(x.confirmed),
+      cumded: Number(x.deaths),
+      cumrec: Number(x.recovered)
+    };
+    return acc;
+  }, {});
 
   var stateCounts = dailydata.states_daily.reduce(function (acc, x) {
     var date = dateFormat(new Date(x.date));
@@ -431,34 +463,64 @@ function getData(rawdata, dailydata) {
         return obj;
       }, acc[date]);
     }
+
+    if (x.status === 'Confirmed') {
+      acc[date] = Object.keys(x).filter(function (k) {
+        return k !== 'date' && k !== 'status';
+      }).reduce(function (obj, statecode) {
+        if (!obj[statecodeToName[statecode]]) obj[statecodeToName[statecode]] = {};
+        obj[statecodeToName[statecode]].total = Number(x[statecode]);
+        return obj;
+      }, acc[date]);
+    }
+
     return acc;
   }, {});
 
-  var statewise = groupBy(data, 'detectedstate');
-  var statewiseDaily = mapValues(statewise, function (arr) {
-    return groupBy(arr, 'dateannounced');
-  });
-  var sdata = mapValues(statewiseDaily, function (stateobj, state) {
-    return mapValues(stateobj, function (x, date) {
-      return {
-        total: x.length,
-        recovered: stateCounts[date] ? stateCounts[date][state].recovered : 0,
-        died: stateCounts[date] ? stateCounts[date][state].died : 0
-      };
-    });
-  });
+  //stateCounts[latestdate] = latestdata;
 
-  var daily = groupBy(data, 'dateannounced');
-  var cdata = mapValues(daily, function (x, date) {
-    return {
-      total: x.length,
-      recovered: stateCounts[date] ? stateCounts[date]['country'].recovered : 0,
-      died: stateCounts[date] ? stateCounts[date]['country'].died : 0
+  var states = Object.keys(statecodeToName).map(function (x) {
+    return statecodeToName[x];
+  }).filter(function (x) {
+    return x !== 'country';
+  });
+  var dates = Object.keys(stateCounts);
+  var sdata = states.reduce(function (acc, state) {
+    var curdata = dates.reduce(function (obj, date) {
+      obj.acc[date] = stateCounts[date][state];
+      obj.cumcon += stateCounts[date][state].total;
+      obj.cumded += stateCounts[date][state].died;
+      obj.cumrec += stateCounts[date][state].recovered;
+      return obj;
+    }, { acc: {}, cumcon: 0, cumded: 0, cumrec: 0 });
+
+    acc[state] = curdata.acc;
+    acc[state][today] = {
+      total: curdata.cumcon < latestdata.cumcon ? latestdata[state].total : 0,
+      recovered: curdata.cumrec < latestdata.cumrec ? latestdata[state].recovered : 0,
+      died: curdata.cumded < latestdata.cumded ? latestdata[state].died : 0
     };
-  });
 
-  //console.log({ sdata, cdata });
-  return { sdata: sdata, cdata: cdata };
+    return acc;
+  }, {});
+
+  var curcdata = dates.reduce(function (obj, date) {
+    obj.acc[date] = stateCounts[date].country;
+    obj.cumcon += stateCounts[date].country.total;
+    obj.cumrec += stateCounts[date].country.recovered;
+    obj.cumded += stateCounts[date].country.died;
+    return obj;
+  }, { acc: {}, cumcon: 0, cumrec: 0, cumded: 0 });
+
+  var cdata = curcdata.acc;
+
+  cdata[today] = {
+    total: curcdata.cumcon < latestdata.cumcon ? latestdata[state].total : 0,
+    recovered: curcdata.cumrec < latestdata.cumrec ? latestdata[state].recovered : 0,
+    died: curcdata.cumded < latestdata.cumded ? latestdata[state].died : 0
+  };
+
+  return { sdata: sdata, cdata: cdata, before: today };
 }
 
 function processData(_ref) {
@@ -504,37 +566,37 @@ function processData(_ref) {
     obj.country.recoveryFraction = obj.country.total ? obj.country.recovered / obj.country.total : 0;
     obj.country.diedFraction = obj.country.total ? obj.country.died / obj.country.total : 0;
 
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
+    var _iteratorNormalCompletion3 = true;
+    var _didIteratorError3 = false;
+    var _iteratorError3 = undefined;
 
     try {
-      for (var _iterator = states[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var state = _step.value;
+      for (var _iterator3 = states[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+        var _state = _step3.value;
 
-        obj[state] = {};
-        obj[state].new = sdata[state][date] ? sdata[state][date].total : 0;
-        obj[state].total = prev[state].total + obj[state].new;
-        obj[state].factor = prev[state].total ? obj[state].total / prev[state].total : 1;
-        obj[state].factor = Math.round((obj[state].factor + Number.EPSILON) * 1000) / 1000;
+        obj[_state] = {};
+        obj[_state].new = sdata[_state][date] ? sdata[_state][date].total : 0;
+        obj[_state].total = prev[_state].total + obj[_state].new;
+        obj[_state].factor = prev[_state].total ? obj[_state].total / prev[_state].total : 1;
+        obj[_state].factor = Math.round((obj[_state].factor + Number.EPSILON) * 1000) / 1000;
 
-        obj[state].newRecovered = sdata[state][date] ? sdata[state][date].recovered : 0;
-        obj[state].recovered = obj[state].newRecovered + prev[state].recovered;
-        obj[state].newDied = sdata[state][date] ? sdata[state][date].died : 0;
-        obj[state].died = obj[state].newDied + prev[state].died;
-        obj[state].active = obj[state].total - (obj[state].recovered + obj[state].died);
+        obj[_state].newRecovered = sdata[_state][date] ? sdata[_state][date].recovered : 0;
+        obj[_state].recovered = obj[_state].newRecovered + prev[_state].recovered;
+        obj[_state].newDied = sdata[_state][date] ? sdata[_state][date].died : 0;
+        obj[_state].died = obj[_state].newDied + prev[_state].died;
+        obj[_state].active = obj[_state].total - (obj[_state].recovered + obj[_state].died);
       }
     } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
+      _didIteratorError3 = true;
+      _iteratorError3 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
+        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+          _iterator3.return();
         }
       } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
+        if (_didIteratorError3) {
+          throw _iteratorError3;
         }
       }
     }
@@ -543,27 +605,27 @@ function processData(_ref) {
     return acc;
   }, {});
 
-  var _iteratorNormalCompletion2 = true;
-  var _didIteratorError2 = false;
-  var _iteratorError2 = undefined;
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
 
   try {
-    for (var _iterator2 = dates[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      var date = _step2.value;
+    for (var _iterator4 = dates[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var date = _step4.value;
 
       if (data[date].country.total === 0) delete data[date];
     }
   } catch (err) {
-    _didIteratorError2 = true;
-    _iteratorError2 = err;
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion2 && _iterator2.return) {
-        _iterator2.return();
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
       }
     } finally {
-      if (_didIteratorError2) {
-        throw _iteratorError2;
+      if (_didIteratorError4) {
+        throw _iteratorError4;
       }
     }
   }
@@ -575,6 +637,7 @@ function processData(_ref) {
 
   dates.forEach(function (date, ind) {
     var prevDate = ind > 0 ? dates[ind - 1] : undefined;
+    console.log(date, data[date]);
     Object.keys(data[date]).forEach(function (state) {
       var _fns$state = fns[state](date),
           _fns$state2 = _slicedToArray(_fns$state, 3),
@@ -615,17 +678,17 @@ function processData(_ref) {
     return acc;
   }, {});
 
-  oneYear.forEach(function (date) {
-    prediction[date].country.cases = states.reduce(function (acc, state) {
+  /*oneYear.forEach(date => {
+    prediction[date].country.cases = states.reduce((acc, state) => { 
       return acc + (prediction[date][state].cases || 0);
     }, 0);
-    prediction[date].country.recovery = states.reduce(function (acc, state) {
+    prediction[date].country.recovery = states.reduce((acc, state) => { 
       return acc + (prediction[date][state].recovery || 0);
     }, 0);
-    prediction[date].country.death = states.reduce(function (acc, state) {
+    prediction[date].country.death = states.reduce((acc, state) => { 
       return acc + (prediction[date][state].death || 0);
     }, 0);
-  });
+  });*/
   //console.log(prediction);
   states.sort(function (a, b) {
     return data[today][b].total - data[today][a].total;
@@ -696,15 +759,13 @@ function curveFit(data, state) {
     return K / (1 + A(K) * Math.exp(-k * t));
   };
 
-  //console.log(coeff[state].K, coeff[state].k, state);
-  //console.log(f(coeff[state].K, coeff[state].k, 15))
   return function (date) {
     var dind = oneYear.indexOf(date);
     var x = dind - d0;
     var rx = dind - rd0;
     var dx = dind - dd0;
 
-    var res = [dset.length ? Math.floor(f(coeff[state][0], coeff[state][1], x, A)) : 0, rdset.length ? Math.floor(f(coeff[state][4], coeff[state][5], rx, RA)) : 0, ddset.length ? Math.floor(f(coeff[state][2], coeff[state][3], dx, DA)) : 0];
+    var res = [P0 && dset.length ? Math.floor(f(coeff[state][0], coeff[state][1], x, A)) : 0, P0 && rdset.length ? Math.floor(f(coeff[state][4], coeff[state][5], rx, RA)) : 0, P0 && ddset.length ? Math.floor(f(coeff[state][2], coeff[state][3], dx, DA)) : 0];
     return res;
   };
 }
@@ -873,21 +934,27 @@ function App() {
       setPred = _React$useState8[1];
 
   React.useEffect(function () {
-    var rawdata = void 0,
-        dailydata = void 0;
-    var rawdataPromise = fetch(rawdataurl).then(function (res) {
+    var latestdata = void 0,
+        dailydata = void 0,
+        frozendata = void 0;
+    var latestdataPromise = fetch(latestdataurl).then(function (res) {
       return res.json();
     }).then(function (res) {
-      return rawdata = res;
+      return latestdata = res.statewise;
     });
     var dailydataPromise = fetch(dailydataurl).then(function (res) {
       return res.json();
     }).then(function (res) {
       return dailydata = res;
     });
+    var frozendataPromise = fetch(frozendataurl).then(function (res) {
+      return res.json();
+    }).then(function (res) {
+      return frozendata = res;
+    });
 
-    Promise.all([rawdataPromise, dailydataPromise]).then(function (_) {
-      var _processData = processData(getData(rawdata, dailydata)),
+    Promise.all([latestdataPromise, dailydataPromise, frozendataPromise]).then(function (_) {
+      var _processData = processData(merge(frozendata, getData(dailydata, latestdata))),
           data = _processData.data,
           states = _processData.states,
           prediction = _processData.prediction;
