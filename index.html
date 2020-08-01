@@ -117,8 +117,13 @@ h1 {
   font-weight: bold;
   color: grey;
 }
-.heading section h1 {
+.heading section h1,
+.heading section h4 {
   margin: 8px 0;
+}
+.heading section h4 {
+  font-size: 16px;
+  color: unset;
 }
 .heading section .grey {
   color: grey;
@@ -160,7 +165,6 @@ footer h3 {
 
 </style>
 
-
 <title>COVID-19 Analysis (India)</title><meta charset="utf8"/><meta name="description" content="Mathematical analysis and prediction for spread of Novel Corona Virus (COVID-19) in India"/><meta name="keywords" content="novel, corona, virus, covid19, covid, analysis, mathematical, model, prediction, india, pandemic"/><meta http-equiv="cache-control" content="no-cache"/><meta property="og:title" content="COVID-19 Spread Analysis (India)"/><meta property="og:description" content="Mathematical analysis and prediction for spread of Novel Corona Virus (COVID-19) in India"/><meta property="og:image" content="https://gnsp.in/covid19/thumbnail.png"/><meta property="og:url" content="https://gnsp.in/covid19"/><meta property="twitter:card" content="summary_large_image"/>
 
 </head>
@@ -199,6 +203,7 @@ var _Recharts = Recharts,
 var frozendataurl = "http://gnsp.in/covid19/compressed.json";
 var latestdataurl = "https://api.covid19india.org/data.json";
 var dailydataurl = "https://api.covid19india.org/states_daily.json";
+var timeseriesurl = "https://api.covid19india.org/v4/timeseries.json";
 
 var now = new Date();
 var today = dateFormat(now);
@@ -289,42 +294,42 @@ var statecodeToName = {
 };
 
 var coeff = {
-  "Kerala": [86621.916173, 0.046, 86.621, 0.032, 86535, 0.03],
-  "Delhi": [168282.320584, 0.065, 3584.4066, 0.105, 164845.2273, 0.076],
-  "Telangana": [338765.556972, 0.068, 406.518, 0.072, 338663.5231, 0.082],
-  "Rajasthan": [36467.768484, 0.043, 656.406, 0.048, 35811, 0.046],
-  "Haryana": [23805.022818, 0.096, 333.27, 0.136, 23471, 0.1],
-  "Uttar Pradesh": [139109.351804, 0.042, 1405.0009, 0.056, 137827.9336, 0.043],
-  "Ladakh": [1123.4, 0.29, 64.011, 0.001, 1059, 0.22],
-  "Tamil Nadu": [442766.32311, 0.051, 3187.9152, 0.08, 439138.422, 0.052],
-  "Jammu and Kashmir": [13248.39456, 0.061, 1364.544, 0.044, 11883, 0.056],
-  "Karnataka": [672659.21997, 0.057, 168030.2182, 0.07, 504124.371, 0.061],
-  "Maharashtra": [436888.931837, 0.05, 15465.8352, 0.057, 421001.577, 0.055],
-  "Punjab": [258124.016752, 0.028, 64505.1876, 0.032, 193772.8944, 0.025],
-  "Andhra Pradesh": [545794.326927, 0.048, 136121.0236, 0.03, 410041.7057, 0.038],
-  "Uttarakhand": [3681.49658, 0.104, 51.534, 0.114, 3629, 0.109],
-  "Odisha": [462136.14018, 0.046, 115349.1456, 0.054, 346473.8926, 0.051],
-  "Puducherry": [2795.41472, 0.091, 19.565, 0.135, 2775, 0.084],
-  "West Bengal": [62067.7582, 0.053, 1675.809, 0.038, 60391, 0.062],
-  "Chandigarh": [622.7155, 0.053, 8.086, 0.064, 614, 0.067],
-  "Chhattisgarh": [4470.40965, 0.094, 22.35, 0.099, 4448, 0.109],
-  "Gujarat": [49077.029904, 0.051, 2110.311, 0.069, 46966, 0.054],
-  "Himachal Pradesh": [1578.85846, 0.066, 172.002, 0.017, 1406, 0.072],
-  "Madhya Pradesh": [19391.358003, 0.049, 717.467, 0.049, 18673, 0.055],
-  "Bihar": [29251.946012, 0.053, 1491.801, 0.048, 27760, 0.064],
-  "Manipur": [1645.0496, 0.145, 1.645, 0.001, 1643, 0.097],
-  "Mizoram": [241.38532, 0.133, 1.205, 0.001, 240, 0.196],
-  "Goa": [5119.49295, 0.078, 1249.036, 0.1, 3870, 0.134],
-  "Andaman and Nicobar Islands": [4148.3329, 0.025, 4.148, 0.001, 4144, 0.023],
-  "Jharkhand": [4189.493018, 0.079, 1043.061, 0.038, 3146, 0.089],
-  "Assam": [93179.849936, 0.061, 22922.034, 0.057, 70257, 0.074],
-  "Arunachal Pradesh": [567.32807, 0.08, 127.008, 0.039, 440, 0.118],
-  "Tripura": [2130.87186, 0.09, 426, 0.007, 1704, 0.07],
-  "Meghalaya": [32606.11011, 0.042, 7695.016, 0.002, 24911, 0.022],
-  "Dadra and Nagar Haveli": [761.4932, 0.128, 156.005, 0.001, 605, 0.151],
-  "Nagaland": [2393.98742, 0.064, 2.393, 0.001, 2391, 0.065],
-  "Sikkim": [6655.2893, 0.028, 6.655, 0.001, 6648, 0.061],
-  "country": [1938351.894592, 0.049, 38883.32106, 0.051, 1897378.5852, 0.053]
+  "Kerala": [367767.325549, 0.048, 1287.1845, 0.029, 366773.184, 0.05],
+  "Delhi": [154902.331607, 0.063, 3996.4716, 0.096, 151040.8145, 0.068],
+  "Telangana": [84078.824948, 0.075, 756.702, 0.043, 83322, 0.082],
+  "Rajasthan": [90415.388403, 0.036, 723.32, 0.049, 89692, 0.04],
+  "Haryana": [37900.43569, 0.077, 454.8, 0.097, 37445, 0.081],
+  "Uttar Pradesh": [2185947.01054, 0.039, 2404.5417, 0.049, 2185703.70658, 0.039],
+  "Ladakh": [1452.2, 0.106, 347.028, 0.02, 1105, 0.168],
+  "Tamil Nadu": [445219.32213, 0.051, 6411.1536, 0.066, 438369.192, 0.053],
+  "Jammu and Kashmir": [46663.789728, 0.045, 2099.835, 0.044, 44563, 0.044],
+  "Karnataka": [672659.21997, 0.063, 5044.9425, 0.085, 666946.386, 0.057],
+  "Maharashtra": [698192.968362, 0.046, 17943.5344, 0.054, 679568.751, 0.05],
+  "Punjab": [176836.036412, 0.03, 9496.0932, 0.032, 167489.6051, 0.027],
+  "Andhra Pradesh": [545843.90403, 0.07, 136406.1657, 0.05, 409805.4933, 0.064],
+  "Uttarakhand": [8694.383704, 0.062, 86.94, 0.073, 8607, 0.065],
+  "Odisha": [387464.006358, 0.047, 2712.248, 0.057, 385097.2759, 0.049],
+  "Puducherry": [5540.91132, 0.08, 160.66, 0.065, 5380, 0.079],
+  "West Bengal": [670423.064675, 0.045, 7240.5684, 0.031, 662518.818, 0.052],
+  "Chandigarh": [1572.6205, 0.039, 29.868, 0.037, 1542, 0.046],
+  "Chhattisgarh": [18724.630134, 0.057, 4662.276, 0.046, 14062, 0.067],
+  "Gujarat": [73373.786088, 0.045, 2494.682, 0.063, 70879, 0.048],
+  "Himachal Pradesh": [7001.89404, 0.045, 21.003, 0.027, 6980, 0.053],
+  "Madhya Pradesh": [63838.965111, 0.035, 893.732, 0.047, 62945, 0.039],
+  "Bihar": [1146187.016246, 0.043, 6773.96517, 0.047, 1140541.01887, 0.049],
+  "Manipur": [2750.3173, 0.094, 13.75, 0.999, 2736, 0.09],
+  "Mizoram": [416.93828, 0.087, 1.248, 0.001, 415, 0.098],
+  "Goa": [12222.6071, 0.067, 61.11, 0.116, 12161, 0.085],
+  "Andaman and Nicobar Islands": [4148.3329, 0.024, 954.04, 0.393, 3194, 0.027],
+  "Jharkhand": [210563.259322, 0.047, 52619.6937, 0.049, 157800.8513, 0.048],
+  "Assam": [123449.258656, 0.058, 2012.2187, 0.057, 121546.2933, 0.066],
+  "Arunachal Pradesh": [15220.997, 0.061, 15.22, 0.041, 15205, 0.08],
+  "Tripura": [13813.92792, 0.053, 55.252, 0.148, 13758, 0.049],
+  "Meghalaya": [32606.11011, 0.058, 7695.016, 0.01, 24911, 0.032],
+  "Dadra and Nagar Haveli": [1347.2572, 0.102, 4.041, 0.06, 1343, 0.109],
+  "Nagaland": [3165.6032, 0.06, 6.33, 0.518, 3159, 0.057],
+  "Sikkim": [6655.2893, 0.048, 1331, 0.001, 5324, 0.055],
+  "country": [4543993.949213, 0.044, 53210.15803, 0.047, 4485843.1387, 0.048]
 };
 
 // DATA PROCESSING/QUERY UTILS
@@ -340,6 +345,15 @@ function dateFormat(d) {
 
 function onlyPositive(x) {
   return x < 0 ? 0 : x;
+}
+
+function round3(x) {
+  return Math.round((x + Number.EPSILON) * 1000) / 1000;
+}
+
+function perr(pred, real) {
+  if (!real) return undefined;
+  return Math.abs(pred - real) * 100 / real;
 }
 
 function getDates() {
@@ -447,7 +461,8 @@ function getData(dailydata, _latestdata) {
     };
     return acc;
   }, {});
-  console.log(latestdata);
+  //console.log(latestdata);
+
   var stateCounts = dailydata.states_daily.reduce(function (acc, x) {
     var date = dateFormat(new Date(x.date));
     if (!acc[date]) acc[date] = {};
@@ -672,6 +687,11 @@ function processData(_ref) {
 
       data[date][state].predictedDied = predDed;
       data[date][state].predictedActive = onlyPositive(data[date][state].predictedTotal - (data[date][state].predictedRecovered + data[date][state].predictedDied));
+      data[date][state].error = {
+        total: perr(data[date][state].predictedTotal, data[date][state].total),
+        recovered: perr(data[date][state].predictedRecovered, data[date][state].recovered),
+        died: perr(data[date][state].predictedDied, data[date][state].died)
+      };
     });
   });
 
@@ -695,7 +715,8 @@ function processData(_ref) {
       obj[state] = {
         cases: predTot, //predLim > predTot ? lastPredTot[state] : predTot,
         recovery: predLim > predTot ? lastPredRec[state] : predRec,
-        death: predLim > predTot ? lastPredDed[state] : predDed
+        death: predLim > predTot ? lastPredDed[state] : predDed,
+        active: onlyPositive(predTot - predLim)
       };
       return obj;
     }, {});
@@ -727,13 +748,13 @@ function curveFit(data, state) {
   var dd0 = 0;
 
   var currentTotal = data[yday][state].total;
-  var p0limit = currentTotal * 0.1;
+  var p0limit = currentTotal * 0.05;
 
   var currentRecovered = data[yday][state].recovered;
-  var r0limit = currentRecovered * 0.1;
+  var r0limit = currentRecovered * 0.05;
 
   var currentDead = data[yday][state].died;
-  var d0limit = currentDead * 0.1;
+  var d0limit = currentDead * 0.05;
 
   var relative = currentTotal > 20;
 
@@ -799,14 +820,91 @@ function curveFit(data, state) {
   };
 }
 
-// COMPONENTS
+// COMPONENTS\
 
-function Chart(_ref2) {
+function PSChart(_ref2) {
   var data = _ref2.data,
-      state = _ref2.state,
-      k = _ref2.k,
-      semilog = _ref2.semilog,
-      area = _ref2.area;
+      state = _ref2.state;
+
+  var d = Object.keys(data).map(function (date, ind) {
+    var obj = {
+      x: date,
+      deceased: round3(data[date][state].died * 100 / data[date][state].total),
+      recovered: round3(data[date][state].recovered * 100 / data[date][state].total)
+    };
+    obj.active = round3(100 - obj.deceased - obj.recovered);
+    return obj;
+  });
+
+  return React.createElement(
+    "div",
+    { className: "graph" },
+    React.createElement(
+      "h2",
+      null,
+      "Case Composition (Percentages)"
+    ),
+    React.createElement(
+      ComposedChart,
+      { width: 800, height: 300, data: d, syncId: "aa" },
+      React.createElement(Area, { type: "monotone", dataKey: "deceased", stroke: "#888", fill: "#8888", strokeWidth: 1, stackId: 1 }),
+      React.createElement(Area, { type: "monotone", dataKey: "recovered", stroke: "#8c0", fill: "#8c08", strokeWidth: 1, stackId: 1 }),
+      React.createElement(Area, { type: "monotone", dataKey: "active", stroke: "#f82", fill: "#f828", strokeWidth: 1, stackId: 1 }),
+      React.createElement(CartesianGrid, { stroke: "#ccc", strokeDasharray: "5 5" }),
+      React.createElement(XAxis, { dataKey: "x" }),
+      React.createElement(YAxis, { domain: [0, 100] }),
+      React.createElement(Tooltip, null),
+      React.createElement(Legend, null)
+    )
+  );
+}
+
+function ErrChart(_ref3) {
+  var data = _ref3.data,
+      state = _ref3.state;
+
+  var filt = function filt(x) {
+    return Number.isNaN(x) || x > 100 ? undefined : x;
+  };
+  var d = Object.keys(data).map(function (date, ind) {
+    var obj = {
+      x: date,
+      total: round3(filt(data[date][state].error.total)),
+      recovered: round3(filt(data[date][state].error.recovered)),
+      deceased: round3(filt(data[date][state].error.died))
+    };
+    return obj;
+  });
+
+  return React.createElement(
+    "div",
+    { className: "graph" },
+    React.createElement(
+      "h2",
+      null,
+      "Prediction Errors (Percentages)"
+    ),
+    React.createElement(
+      ComposedChart,
+      { width: 800, height: 300, data: d, syncId: "aa" },
+      React.createElement(Line, { type: "monotone", dataKey: "total", stroke: "#f82", strokeWidth: 2 }),
+      React.createElement(Line, { type: "monotone", dataKey: "recovered", stroke: "#8c0", strokeWidth: 2 }),
+      React.createElement(Line, { type: "monotone", dataKey: "deceased", stroke: "#888", strokeWidth: 2 }),
+      React.createElement(CartesianGrid, { stroke: "#ccc", strokeDasharray: "5 5" }),
+      React.createElement(XAxis, { dataKey: "x" }),
+      React.createElement(YAxis, null),
+      React.createElement(Tooltip, null),
+      React.createElement(Legend, null)
+    )
+  );
+}
+
+function Chart(_ref4) {
+  var data = _ref4.data,
+      state = _ref4.state,
+      k = _ref4.k,
+      semilog = _ref4.semilog,
+      area = _ref4.area;
 
   var predKey = "predicted" + capitalize(k);
   var d = Object.keys(data).map(function (date, ind) {
@@ -817,7 +915,8 @@ function Chart(_ref2) {
       recovered: data[date][state].recovered,
       deceased: data[date][state].died,
       recovery: data[date][state].recovery,
-      death: data[date][state].death
+      death: data[date][state].death,
+      active: data[date][state].active
     };
   });
 
@@ -856,6 +955,7 @@ function Chart(_ref2) {
       k === 'total' && React.createElement(Area, { type: "monotone", dataKey: "recovered", stroke: "#8c0", fill: "#8c08", strokeWidth: 1, stackId: 1 }),
       k === 'cases' && data[today][state].death > 3 && React.createElement(Area, { type: "monotone", dataKey: "death", stroke: "#888", fill: "#8888", strokeWidth: 1, stackId: 2 }),
       k === 'cases' && data[today][state].recovery > 5 && React.createElement(Area, { type: "monotone", dataKey: "recovery", stroke: "#8c0", fill: "#8c08", strokeWidth: 1, stackId: 2 }),
+      k === 'cases' && data[today][state].active > 5 && React.createElement(Area, { type: "monotone", dataKey: "active", stroke: "#000", fill: "#0004", strokeWidth: 1 }),
       React.createElement(CartesianGrid, { stroke: "#ccc", strokeDasharray: "5 5" }),
       React.createElement(XAxis, { dataKey: "x" }),
       React.createElement(YAxis, { scale: semilog && 'log', domain: semilog && ['auto', 'auto'] }),
@@ -867,9 +967,9 @@ function Chart(_ref2) {
   );
 }
 
-function Heading(_ref3) {
-  var state = _ref3.state,
-      data = _ref3.data;
+function Heading(_ref5) {
+  var state = _ref5.state,
+      data = _ref5.data;
 
   return React.createElement(
     "div",
@@ -886,6 +986,12 @@ function Heading(_ref3) {
         "h1",
         null,
         data[today][state].total
+      ),
+      React.createElement(
+        "h4",
+        null,
+        Math.ceil(data[today][state].total * 1000000 / population[state]),
+        " pM"
       )
     ),
     React.createElement(
@@ -899,7 +1005,13 @@ function Heading(_ref3) {
       React.createElement(
         "h1",
         { className: "blue" },
-        data[today][state].total - (data[today][state].recovered + data[today][state].died)
+        data[today][state].active
+      ),
+      React.createElement(
+        "h4",
+        { className: "blue" },
+        round3(data[today][state].active * 100 / data[today][state].total),
+        " %"
       )
     ),
     React.createElement(
@@ -914,6 +1026,12 @@ function Heading(_ref3) {
         "h1",
         { className: "green" },
         data[today][state].recovered
+      ),
+      React.createElement(
+        "h4",
+        { className: "green" },
+        round3(data[today][state].recovered * 100 / data[today][state].total),
+        " %"
       )
     ),
     React.createElement(
@@ -928,6 +1046,12 @@ function Heading(_ref3) {
         "h1",
         { className: "grey" },
         data[today][state].died
+      ),
+      React.createElement(
+        "h4",
+        { className: "grey" },
+        round3(data[today][state].died * 100 / data[today][state].total),
+        " %"
       )
     )
   );
@@ -991,6 +1115,7 @@ function App() {
       setStates(states);
       setPred(prediction);
       setData(data);
+      window.appdata = { data: data, states: states, today: today };
     });
   }, []);
 
@@ -1069,7 +1194,9 @@ function App() {
         React.createElement(Chart, { data: data, state: st, k: 'new' }),
         React.createElement(Chart, { data: data, state: st, k: 'newRecovered' }),
         React.createElement(Chart, { data: data, state: st, k: 'active' }),
-        React.createElement(Chart, { data: data, state: st, k: 'factor', semilog: true })
+        React.createElement(PSChart, { data: data, state: st }),
+        React.createElement(Chart, { data: data, state: st, k: 'factor', semilog: true }),
+        React.createElement(ErrChart, { data: data, state: st })
       )
     ),
     React.createElement(
